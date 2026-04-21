@@ -278,7 +278,7 @@ vela/
 
 ```bash
 # Clone the repository
-git clone https://github.com/Siddhant2713/VELA.git
+git clone https://github.com/riya17171/Vela.git
 cd VELA
 
 # Install dependencies
