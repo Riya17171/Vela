@@ -40,7 +40,7 @@ The platform ships two distinct experiences from a single codebase:
 
 ## Live Demo
 
-> **Storefront:** [your-deployment-url.vercel.app](https://your-deployment-url.vercel.app)
+> **Storefront:** [(https://your-deployment-url.vercel.app)](https://vela-6r9c3riw9-riya17171s-projects.vercel.app/)
 > **Admin access:** Log in with `admin@vela.com` / `[your demo password]`
 > *(Set up a demo admin account in your Supabase profiles table before submitting)*
 
