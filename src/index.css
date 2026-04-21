@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #ffffff;
+    --text: #0f172a;
+    --color-ivory: #f8fafc;
+    --color-parchment: #f1f5f9;
+    --color-silk: #e2e8f0;
+    --color-charcoal: #0f172a;
+    --color-warmgray: #64748b;
+    --color-linen: #cbd5e1;
+    --color-obsidian: #4f46e5;
+    --color-cream: #ffffff;
+  }
+
+  [data-theme='dark'] {
+    --bg: #020617;
+    --text: #f8fafc;
+    --color-ivory: #0f172a;
+    --color-parchment: #1e293b;
+    --color-silk: #334155;
+    --color-charcoal: #f8fafc;
+    --color-warmgray: #94a3b8;
+    --color-linen: #475569;
+    --color-obsidian: #6366f1;
+    --color-cream: #ffffff;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-obsidian);
+    color: var(--color-cream);
+  }
+
+  /* Reset headings typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+  }
+
+  /* Ensure all borders adopt the warm thin styling universally by default */
+  * {
+    border-color: var(--color-silk);
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* We leave this legacy block temporarily for standard React routes that haven't migrated yet */
+.vela-app {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+.vela-main {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  flex: 1;
+  padding: 24px 16px;
+  text-align: left;
+}
