@@ -41,12 +41,7 @@ The platform ships two distinct experiences from a single codebase:
 ## Live Demo
 
 🚀 **Storefront:** https://vela-6r9c3riw9-riya17171s-projects.vercel.app
-
-🔐 **Admin Access:**
-Email: admin@vela.com  
-Password: your-demo-password
----
-
+🔐 Admin access available via demo account (configured in database)
 ## Tech Stack
 
 | Layer | Technology | Rationale |
