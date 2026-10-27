@@ -1,0 +1,5331 @@
+{
+  "info": {
+    "name": "Vela API",
+    "description": "Vela — Dressed in Silence. REST API v1. Run top to bottom: each request stores the ids/tokens the next ones need. See docs/POSTMAN.md. Money values are integers in paise. No real credentials are stored in this file.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "{",
+          "    // Every response uses the documented envelope.",
+          "    if ((pm.response.headers.get('Content-Type') || '').indexOf('application/json') !== -1) {",
+          "        const body = pm.response.json();",
+          "        pm.test('Envelope: success + message', function () {",
+          "            pm.expect(body.success).to.be.a('boolean');",
+          "            pm.expect(body.message).to.be.a('string');",
+          "        });",
+          "        if (body.success === true) {",
+          "            pm.test('Envelope: data present on success', function () {",
+          "                pm.expect(body).to.have.property('data');",
+          "            });",
+          "        }",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api/v1",
+      "type": "string",
+      "description": "API base URL. Use your deployed URL (…/api/v1) for remote testing."
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "Set automatically by Register/Login/Refresh."
+    },
+    {
+      "key": "adminAccessToken",
+      "value": "",
+      "type": "string",
+      "description": "Set automatically by \"Admin login\"."
+    },
+    {
+      "key": "customerEmail",
+      "value": "",
+      "type": "string",
+      "description": "Generated per run by \"Register\"."
+    },
+    {
+      "key": "customerPassword",
+      "value": "StrongTestPassword123!",
+      "type": "string",
+      "description": "Test-only password for the generated customer. Updated by the change-password requests."
+    },
+    {
+      "key": "newCustomerPassword",
+      "value": "",
+      "type": "string",
+      "description": "Internal: next password used by change-password requests."
+    },
+    {
+      "key": "adminEmail",
+      "value": "",
+      "type": "string",
+      "description": "FILL IN: email of an admin created with `npm run create-admin`. Admin requests are skipped while empty."
+    },
+    {
+      "key": "adminPassword",
+      "value": "",
+      "type": "string",
+      "description": "FILL IN (current value only, never commit it): password of that admin."
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string",
+      "description": "Set by Register/Login."
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Search: cashmere turtleneck\"."
+    },
+    {
+      "key": "productSlug",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Search: cashmere turtleneck\"."
+    },
+    {
+      "key": "categoryId",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Search: cashmere turtleneck\"."
+    },
+    {
+      "key": "cartItemId",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Add item\"."
+    },
+    {
+      "key": "addressId",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Create address\"."
+    },
+    {
+      "key": "secondAddressId",
+      "value": "",
+      "type": "string",
+      "description": "Internal."
+    },
+    {
+      "key": "idempotencyKey",
+      "value": "",
+      "type": "string",
+      "description": "Generated per checkout attempt."
+    },
+    {
+      "key": "cancelIdempotencyKey",
+      "value": "",
+      "type": "string",
+      "description": "Internal."
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Create order\"."
+    },
+    {
+      "key": "cancelOrderId",
+      "value": "",
+      "type": "string",
+      "description": "Internal."
+    },
+    {
+      "key": "paymentId",
+      "value": "",
+      "type": "string",
+      "description": "Internal payment id, set by \"Create Razorpay order\"."
+    },
+    {
+      "key": "razorpayOrderId",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Create Razorpay order\"."
+    },
+    {
+      "key": "razorpayOrderIdOrPlaceholder",
+      "value": "",
+      "type": "string",
+      "description": "Internal."
+    },
+    {
+      "key": "razorpayPaymentId",
+      "value": "",
+      "type": "string",
+      "description": "FILL IN from a real Razorpay test checkout to run \"Verify payment\"."
+    },
+    {
+      "key": "razorpaySignature",
+      "value": "",
+      "type": "string",
+      "description": "FILL IN from the same Razorpay test checkout."
+    },
+    {
+      "key": "reviewId",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Create review\"."
+    },
+    {
+      "key": "adminCategoryId",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Create category\"."
+    },
+    {
+      "key": "adminProductId",
+      "value": "",
+      "type": "string",
+      "description": "Set by \"Create product\"."
+    },
+    {
+      "key": "webhookSecret",
+      "value": "",
+      "type": "string",
+      "description": "Optional: same value as RAZORPAY_WEBHOOK_SECRET to sign the sample webhook. Leave empty in shared exports."
+    },
+    {
+      "key": "webhookSignature",
+      "value": "",
+      "type": "string",
+      "description": "Internal: computed by the webhook pre-request script."
+    },
+    {
+      "key": "uploadImagePath",
+      "value": "",
+      "type": "string",
+      "description": "Optional: local image path for the upload request."
+    },
+    {
+      "key": "paymentsEnabled",
+      "value": "",
+      "type": "string",
+      "description": "Set from GET /config."
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "description": "Readiness, public configuration and the journal sign-up. No authentication.",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Returns 200 when MongoDB is connected and 503 (`status: degraded`) when it is not. No secrets or infrastructure details are exposed.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const body = pm.response.json();",
+                  "    pm.test('API reports ready', function () {",
+                  "        pm.expect(body.message).to.eql('Vela API is running');",
+                  "        pm.expect(body.data.status).to.eql('ok');",
+                  "        pm.expect(body.data.database).to.eql('connected');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Public configuration",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "config"
+              ]
+            },
+            "description": "Currency, tax rate, shipping rules, Razorpay *key id* (never the secret) and whether payments/uploads are configured.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const data = pm.response.json().data;",
+                  "    pm.test('Exposes only public settings', function () {",
+                  "        pm.expect(data.currency).to.be.a('string');",
+                  "        pm.expect(data.payments).to.have.property('enabled');",
+                  "        pm.expect(JSON.stringify(data)).to.not.include('secret');",
+                  "    });",
+                  "    pm.collectionVariables.set('paymentsEnabled', String(data.payments.enabled));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Journal subscribe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/newsletter/subscribe",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletter",
+                "subscribe"
+              ]
+            },
+            "description": "Idempotent: the same response is returned for new and existing addresses. Rate limited with the auth limiter.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    if (!pm.collectionVariables.get('customerEmail')) {",
+                  "        pm.collectionVariables.set('customerEmail', 'postman-' + Date.now() + '@example.com');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "description": "Registration, login, cookie-based refresh, logout and password management. The refresh token is an httpOnly cookie scoped to /api/v1/auth; Postman/Newman keep it in the cookie jar automatically. The access token is returned in JSON and stored in {{accessToken}}.",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Password rules: 8–128 characters with an uppercase letter, a lowercase letter and a number. Email is trimmed and lower-cased.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Customer\",\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201]', function () {",
+                  "        pm.expect([201]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const data = pm.response.json().data;",
+                  "    pm.test('Returns a customer and an access token, never a password hash', function () {",
+                  "        pm.expect(data.user.role).to.eql('user');",
+                  "        pm.expect(data.accessToken).to.be.a('string');",
+                  "        pm.expect(JSON.stringify(data)).to.not.include('passwordHash');",
+                  "    });",
+                  "    pm.test('Sets the httpOnly refresh cookie', function () {",
+                  "        pm.expect(pm.cookies.has('vela_rt')).to.be.true;",
+                  "    });",
+                  "    pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    pm.collectionVariables.set('userId', data.user.id);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    // A fresh address on every run keeps the collection rerunnable.",
+                  "    pm.collectionVariables.set('customerEmail', 'postman-' + Date.now() + '@example.com');",
+                  "    if (!pm.collectionVariables.get('customerPassword')) {",
+                  "        pm.collectionVariables.set('customerPassword', 'StrongTestPassword123!');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register duplicate email → 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Customer\",\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [409]', function () {",
+                  "        pm.expect([409]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Code is EMAIL_TAKEN', function () {",
+                  "        pm.expect(pm.response.json().code).to.eql('EMAIL_TAKEN');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register as admin is rejected → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Public registration can never create an administrator: unknown fields are rejected by the strict schema.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Mallory\",\n  \"email\": \"mallory-{{$timestamp}}@example.com\",\n  \"password\": \"StrongTestPassword123!\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Unknown \"role\" field is reported', function () {",
+                  "        const errors = pm.response.json().errors || [];",
+                  "        pm.expect(errors.map(function (e) { return e.field; })).to.include('role');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const data = pm.response.json().data;",
+                  "    pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    pm.collectionVariables.set('userId', data.user.id);",
+                  "    pm.test('Access token returned', function () {",
+                  "        pm.expect(data.accessToken).to.be.a('string');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with wrong password → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"WrongPassword1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [401]', function () {",
+                  "        pm.expect([401]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Generic INVALID_CREDENTIALS error', function () {",
+                  "        const body = pm.response.json();",
+                  "        pm.expect(body.code).to.eql('INVALID_CREDENTIALS');",
+                  "        pm.expect(body.message).to.eql('Invalid email or password');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current user (me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Returns the signed-in customer', function () {",
+                  "        pm.expect(pm.response.json().data.user.email).to.eql(pm.collectionVariables.get('customerEmail'));",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh access token (cookie)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Uses the vela_rt cookie from the cookie jar (no body needed). The cookie is rotated on every call; replaying an old one revokes the whole session family. Requests without an Origin header (Postman, curl) are allowed; browsers must come from CLIENT_ORIGINS.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const data = pm.response.json().data;",
+                  "    pm.collectionVariables.set('accessToken', data.accessToken);",
+                  "    pm.test('Rotated refresh cookie is set', function () {",
+                  "        pm.expect(pm.cookies.has('vela_rt')).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh from a foreign origin → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "https://evil.example"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [403]', function () {",
+                  "        pm.expect([403]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('CSRF origin check', function () {",
+                  "        pm.expect(pm.response.json().code).to.eql('ORIGIN_NOT_ALLOWED');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Forgot password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Emails a single-use link (valid PASSWORD_RESET_TTL_MINUTES). Without SMTP, in development only, the link is printed to the backend log — it is never returned over HTTP.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Same generic message whether or not the account exists', function () {",
+                  "        pm.expect(pm.response.json().message).to.include('If an account exists');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset password with invalid token → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "Use the token from the emailed (or, in development, logged) link to reset for real.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"this-token-does-not-exist-0000000000\",\n  \"password\": \"AnotherStrong123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('INVALID_RESET_TOKEN', function () {",
+                  "        pm.expect(pm.response.json().code).to.eql('INVALID_RESET_TOKEN');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "change-password"
+              ]
+            },
+            "description": "Verifies the current password, bumps the token version (old access tokens stop working immediately) and revokes all refresh sessions, then starts a new session for this client.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{customerPassword}}\",\n  \"newPassword\": \"{{newCustomerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    // Every other session is revoked; this response carries the new session.",
+                  "    pm.collectionVariables.set('accessToken', pm.response.json().data.accessToken);",
+                  "    pm.collectionVariables.set('customerPassword', pm.collectionVariables.get('newCustomerPassword'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.collectionVariables.set('newCustomerPassword', 'Changed' + Date.now() + 'Aa');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Revokes the refresh session in the cookie and clears it. The current access token stays valid until it expires (15 minutes by default), so the rest of this collection keeps working.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Refresh cookie cleared', function () {",
+                  "        pm.expect(pm.cookies.get('vela_rt') || '').to.eql('');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh after logout → 401",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [401]', function () {",
+                  "        pm.expect([401]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "User profile",
+      "description": "The signed-in customer's own profile. Role, email and status can never be changed here.",
+      "item": [
+        {
+          "name": "Get profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Profile has no secrets', function () {",
+                  "        const user = pm.response.json().data.user;",
+                  "        pm.expect(user).to.not.have.property('passwordHash');",
+                  "        pm.expect(user).to.not.have.property('tokenVersion');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get profile without token → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [401]', function () {",
+                  "        pm.expect([401]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('NO_TOKEN', function () {",
+                  "        pm.expect(pm.response.json().code).to.eql('NO_TOKEN');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Customer Updated\",\n  \"phone\": \"+91 98765 43210\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Profile updated', function () {",
+                  "        pm.expect(pm.response.json().data.user.fullName).to.eql('Postman Customer Updated');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update profile with role → 400",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Mass assignment is blocked: unknown/protected fields are rejected, not ignored.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Mallory\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change password (profile alias)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "password"
+              ]
+            },
+            "description": "Same behaviour as PATCH /auth/change-password.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{customerPassword}}\",\n  \"newPassword\": \"{{newCustomerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.collectionVariables.set('accessToken', pm.response.json().data.accessToken);",
+                  "    pm.collectionVariables.set('customerPassword', pm.collectionVariables.get('newCustomerPassword'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.collectionVariables.set('newCustomerPassword', 'Profile' + Date.now() + 'Aa');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Addresses",
+      "description": "Up to 5 saved addresses per customer. The first address becomes the default.",
+      "item": [
+        {
+          "name": "Create address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "addresses"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Home\",\n  \"fullName\": \"Postman Customer\",\n  \"phone\": \"+91 98765 43210\",\n  \"line1\": \"12 Linen Lane\",\n  \"line2\": \"Floor 2\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"postalCode\": \"560001\",\n  \"country\": \"IN\",\n  \"isDefault\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201]', function () {",
+                  "        pm.expect([201]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const data = pm.response.json().data;",
+                  "    pm.collectionVariables.set('addressId', data.address.id);",
+                  "    pm.test('Saved as default', function () {",
+                  "        pm.expect(data.address.isDefault).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create second address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "addresses"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Studio\",\n  \"fullName\": \"Postman Customer\",\n  \"phone\": \"+91 98765 43210\",\n  \"line1\": \"99 Silk Street\",\n  \"line2\": \"Floor 2\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"postalCode\": \"560001\",\n  \"country\": \"IN\",\n  \"isDefault\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201]', function () {",
+                  "        pm.expect([201]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.collectionVariables.set('secondAddressId', pm.response.json().data.address.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List addresses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "addresses"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Two addresses', function () {",
+                  "        pm.expect(pm.response.json().data.addresses.length).to.eql(2);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update address",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/addresses/{{addressId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "addresses",
+                "{{addressId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"city\": \"Mysuru\",\n  \"postalCode\": \"570001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid address → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "addresses"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Home\",\n  \"fullName\": \"Postman Customer\",\n  \"phone\": \"+91 98765 43210\",\n  \"line1\": \"12 Linen Lane\",\n  \"line2\": \"Floor 2\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"postalCode\": \"!!\",\n  \"country\": \"IN\",\n  \"isDefault\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete second address",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/addresses/{{secondAddressId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "addresses",
+                "{{secondAddressId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('One address left', function () {",
+                  "        pm.expect(pm.response.json().data.addresses.length).to.eql(1);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "description": "Public catalogue. Prices are integers in paise (₹1 = 100). Only active products are returned.",
+      "item": [
+        {
+          "name": "List products (page 1, price ascending)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?page=1&limit=12&sort=price_asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "12"
+                },
+                {
+                  "key": "sort",
+                  "value": "price_asc"
+                }
+              ]
+            },
+            "description": "Query: page, limit (max 48 by default), search, category (slug), minPrice/maxPrice (paise), sort (newest | price_asc | price_desc | rating | title_asc), size, colour, featured, inStock, ids (comma-separated, max 12).",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const body = pm.response.json();",
+                  "    pm.test('Pagination metadata', function () {",
+                  "        pm.expect(body.meta).to.include.keys('page', 'limit', 'total', 'totalPages', 'hasNextPage');",
+                  "    });",
+                  "    pm.test('Sorted by price ascending', function () {",
+                  "        const prices = body.data.products.map(function (p) { return p.price; });",
+                  "        pm.expect(prices).to.eql(prices.slice().sort(function (a, b) { return a - b; }));",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search: cashmere turtleneck (saves productId)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?search=cashmere%20turtleneck",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "cashmere%20turtleneck"
+                }
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const product = pm.response.json().data.products[0];",
+                  "    pm.test('Seeded turtleneck found', function () {",
+                  "        pm.expect(product.title).to.eql('Oversized Cashmere Turtleneck');",
+                  "        pm.expect(product.sizes).to.include('M');",
+                  "    });",
+                  "    pm.collectionVariables.set('productId', product.id);",
+                  "    pm.collectionVariables.set('productSlug', product.slug);",
+                  "    pm.collectionVariables.set('categoryId', product.category.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter: womenswear, size M, Ivory, ₹50,000–₹2,00,000",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?category=womens-rtw&size=M&colour=Ivory&minPrice=5000000&maxPrice=20000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "womens-rtw"
+                },
+                {
+                  "key": "size",
+                  "value": "M"
+                },
+                {
+                  "key": "colour",
+                  "value": "Ivory"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "5000000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "20000000"
+                }
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Every result matches the filters', function () {",
+                  "        pm.response.json().data.products.forEach(function (p) {",
+                  "            pm.expect(p.category.slug).to.eql('womens-rtw');",
+                  "            pm.expect(p.sizes).to.include('M');",
+                  "            pm.expect(p.price).to.be.within(5000000, 20000000);",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Featured products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/featured?limit=6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "featured"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "6"
+                }
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('All featured', function () {",
+                  "        pm.response.json().data.products.forEach(function (p) { pm.expect(p.isFeatured).to.be.true; });",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Product by slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productSlug}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productSlug}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Product by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown product → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/64b7f9e2a1b2c3d4e5f60718",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "64b7f9e2a1b2c3d4e5f60718"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [404]', function () {",
+                  "        pm.expect([404]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid sort → 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?sort=passwordHash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "passwordHash"
+                }
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Operator injection in query → 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?price[$gt]=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "price[$gt]",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recommendations (personalised when signed in)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/recommendations?limit=6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "recommendations"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "6"
+                }
+              ]
+            },
+            "description": "Rule-based (no ML): categories of recently viewed and wishlisted pieces, best rated first, topped up with top-rated pieces. Works anonymously too."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Record recently viewed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/recently-viewed",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "recently-viewed"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List recently viewed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/recently-viewed",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "recently-viewed"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Most recent first', function () {",
+                  "        pm.expect(pm.response.json().data.items[0].product.id).to.eql(pm.collectionVariables.get('productId'));",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "description": "Active categories with counts of active products.",
+      "item": [
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Has product counts', function () {",
+                  "        pm.response.json().data.categories.forEach(function (c) { pm.expect(c.productCount).to.be.a('number'); });",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Category by slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/womens-rtw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "womens-rtw"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown category → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/does-not-exist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "does-not-exist"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [404]', function () {",
+                  "        pm.expect([404]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "description": "Server-side bag. Prices are always read from the product, never from the client.",
+      "item": [
+        {
+          "name": "Get cart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add without size → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "items"
+              ]
+            },
+            "description": "The turtleneck offers sizes and colours, so both must be chosen.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add with a client price → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "items"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1,\n  \"size\": \"M\",\n  \"color\": \"Ivory\",\n  \"price\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add item (size M, Ivory)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "items"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1,\n  \"size\": \"M\",\n  \"color\": \"Ivory\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const cart = pm.response.json().data.cart;",
+                  "    const line = cart.items.find(function (i) { return i.productId === pm.collectionVariables.get('productId') && i.size === 'M'; });",
+                  "    pm.collectionVariables.set('cartItemId', line.id);",
+                  "    pm.test('Server-calculated totals', function () {",
+                  "        pm.expect(cart.summary.total).to.eql(cart.summary.subtotal + cart.summary.tax + cart.summary.shipping);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update quantity",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/items/{{cartItemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "items",
+                "{{cartItemId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Quantity is 2', function () {",
+                  "        const line = pm.response.json().data.cart.items.find(function (i) { return i.id === pm.collectionVariables.get('cartItemId'); });",
+                  "        pm.expect(line.quantity).to.eql(2);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remove item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cart/items/{{cartItemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "items",
+                "{{cartItemId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Clear cart",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Bag is empty', function () {",
+                  "        pm.expect(pm.response.json().data.cart.items.length).to.eql(0);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add item again (for checkout)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "items"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1,\n  \"size\": \"M\",\n  \"color\": \"Ivory\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wishlist",
+      "description": "Saved pieces; adding twice is a no-op.",
+      "item": [
+        {
+          "name": "Add to wishlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wishlist/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wishlist",
+                "items"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add again (no duplicate)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wishlist/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wishlist",
+                "items"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Still one entry', function () {",
+                  "        pm.expect(pm.response.json().data.wishlist.count).to.eql(1);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get wishlist",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wishlist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wishlist"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remove from wishlist",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wishlist/items/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wishlist",
+                "items",
+                "{{productId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Empty', function () {",
+                  "        pm.expect(pm.response.json().data.wishlist.count).to.eql(0);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "description": "Orders are created from the server-side bag. Totals, snapshots and stock reservation happen on the server; the bag is only cleared after a verified payment.",
+      "item": [
+        {
+          "name": "Create order (pending payment)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Send either addressId or a full shippingAddress. Reuse the same idempotencyKey (or Idempotency-Key header) to safely retry without creating a second order.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addressId\": \"{{addressId}}\",\n  \"idempotencyKey\": \"{{idempotencyKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201]', function () {",
+                  "        pm.expect([201]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const order = pm.response.json().data.order;",
+                  "    pm.collectionVariables.set('orderId', order.id);",
+                  "    pm.test('Pending payment with server totals', function () {",
+                  "        pm.expect(order.status).to.eql('pending_payment');",
+                  "        pm.expect(order.paymentStatus).to.eql('pending');",
+                  "        pm.expect(order.total).to.eql(order.subtotal + order.tax + order.shipping - order.discount);",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.collectionVariables.set('idempotencyKey', 'postman-' + Date.now());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Repeat with the same idempotency key → same order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addressId\": \"{{addressId}}\",\n  \"idempotencyKey\": \"{{idempotencyKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Returns the original order', function () {",
+                  "        pm.expect(pm.response.json().data.order.id).to.eql(pm.collectionVariables.get('orderId'));",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Client-supplied total → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addressId\": \"{{addressId}}\",\n  \"total\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/my-orders?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "my-orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Contains the new order', function () {",
+                  "        const ids = pm.response.json().data.orders.map(function (o) { return o.id; });",
+                  "        pm.expect(ids).to.include(pm.collectionVariables.get('orderId'));",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Order detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a second order (to cancel)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shippingAddress\": {\n    \"fullName\": \"Postman Customer\",\n    \"phone\": \"+91 98765 43210\",\n    \"line1\": \"12 Linen Lane\",\n    \"city\": \"Bengaluru\",\n    \"state\": \"Karnataka\",\n    \"postalCode\": \"560001\",\n    \"country\": \"IN\"\n  },\n  \"idempotencyKey\": \"{{cancelIdempotencyKey}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201]', function () {",
+                  "        pm.expect([201]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.collectionVariables.set('cancelOrderId', pm.response.json().data.order.id);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.collectionVariables.set('cancelIdempotencyKey', 'postman-cancel-' + Date.now());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{cancelOrderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{cancelOrderId}}",
+                "cancel"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Changed my mind\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Cancelled, nothing charged, stock released', function () {",
+                  "        const order = pm.response.json().data.order;",
+                  "        pm.expect(order.status).to.eql('cancelled');",
+                  "        pm.expect(order.paymentStatus).to.eql('void');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel again (idempotent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{cancelOrderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{cancelOrderId}}",
+                "cancel"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Reports already cancelled', function () {",
+                  "        pm.expect(pm.response.json().message).to.include('already cancelled');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid order id → 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/not-an-id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "not-an-id"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "description": "Razorpay test-mode integration. Without RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET on the server, payment endpoints answer 503 PAYMENTS_DISABLED (accepted by these tests).",
+      "item": [
+        {
+          "name": "Create Razorpay order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/create-order",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "create-order"
+              ]
+            },
+            "description": "Creates (or returns the existing) Razorpay order for a pending internal order. The amount comes from the order, never from the request. Returns the public key id, razorpayOrderId, amount, currency and prefill data for Razorpay Checkout.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201,200,503]', function () {",
+                  "        pm.expect([201,200,503]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const body = pm.response.json();",
+                  "    if (pm.response.code === 503) {",
+                  "        pm.test('Payments disabled is reported explicitly', function () {",
+                  "            pm.expect(body.code).to.eql('PAYMENTS_DISABLED');",
+                  "        });",
+                  "    } else {",
+                  "        const checkout = body.data.checkout;",
+                  "        pm.collectionVariables.set('paymentId', checkout.paymentId);",
+                  "        pm.collectionVariables.set('razorpayOrderId', checkout.razorpayOrderId);",
+                  "        pm.test('Amount is the server-calculated total in paise; no secret exposed', function () {",
+                  "            pm.expect(checkout.amount).to.be.a('number');",
+                  "            pm.expect(checkout.keyId).to.match(/^rzp_/);",
+                  "            pm.expect(JSON.stringify(body)).to.not.include('secret');",
+                  "        });",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify with malformed signature → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "verify"
+              ]
+            },
+            "description": "Request validation rejects anything that is not a 64-character hex signature.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"razorpayOrderId\": \"order_ABCDEFGH123456\",\n  \"razorpayPaymentId\": \"pay_ABCDEFGH123456\",\n  \"razorpaySignature\": \"not-a-signature\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify with wrong signature → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "verify"
+              ]
+            },
+            "description": "With payments configured and a created Razorpay order this returns 400 INVALID_SIGNATURE; the order stays unpaid.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"razorpayOrderId\": \"{{razorpayOrderIdOrPlaceholder}}\",\n  \"razorpayPaymentId\": \"pay_FAKEPAYMENT0001\",\n  \"razorpaySignature\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400,503]', function () {",
+                  "        pm.expect([400,503]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const body = pm.response.json();",
+                  "    pm.test('Rejected (INVALID_SIGNATURE, ORDER_MISMATCH or PAYMENTS_DISABLED)', function () {",
+                  "        pm.expect(['INVALID_SIGNATURE', 'ORDER_MISMATCH', 'PAYMENTS_DISABLED']).to.include(body.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.collectionVariables.set('razorpayOrderIdOrPlaceholder', pm.collectionVariables.get('razorpayOrderId') || 'order_NOTCREATED0001');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify payment (real test checkout)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "verify"
+              ]
+            },
+            "description": "Verifies a Razorpay Checkout result on the server: HMAC-SHA256(\"<razorpayOrderId>|<razorpayPaymentId>\", RAZORPAY_KEY_SECRET) compared in constant time, then the payment is fetched from Razorpay to confirm order id, amount and currency (authorised payments are captured).\n\nA successful verify needs a REAL razorpay_payment_id and razorpay_signature produced by a Razorpay **test-mode** checkout — complete checkout in the Vela frontend (or with Razorpay's test checkout as described at https://razorpay.com/docs/payments/payments/test-card-details/), copy the three values from the handler response into the collection variables razorpayPaymentId and razorpaySignature, then send this request. This collection never fabricates a payment success. The request is skipped while razorpayPaymentId is empty.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"razorpayOrderId\": \"{{razorpayOrderId}}\",\n  \"razorpayPaymentId\": \"{{razorpayPaymentId}}\",\n  \"razorpaySignature\": \"{{razorpaySignature}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200,202]', function () {",
+                  "        pm.expect([200,202]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Order confirmed and paid', function () {",
+                  "        const data = pm.response.json().data;",
+                  "        pm.expect(data.order.paymentStatus).to.eql('paid');",
+                  "        pm.expect(data.order.status).to.eql('confirmed');",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    if (!pm.variables.get('razorpayPaymentId')) {",
+                  "        console.log('Skipping \"' + pm.info.requestName + '\": fill razorpayPaymentId/razorpaySignature from a real Razorpay test checkout');",
+                  "        pm.execution.skipRequest();",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Payment status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{paymentId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "{{paymentId}}",
+                "status"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    if (!pm.variables.get('paymentId')) {",
+                  "        console.log('Skipping \"' + pm.info.requestName + '\": no payment order was created (payments disabled?)');",
+                  "        pm.execution.skipRequest();",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reconcile with Razorpay",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{paymentId}}/reconcile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "{{paymentId}}",
+                "reconcile"
+              ]
+            },
+            "description": "Asks Razorpay for the payments made against this order. Used when the checkout window is closed without a callback — closing it is not proof of failure."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    if (!pm.variables.get('paymentId')) {",
+                  "        console.log('Skipping \"' + pm.info.requestName + '\": no payment order was created (payments disabled?)');",
+                  "        pm.execution.skipRequest();",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Report client-side failure",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/{{paymentId}}/failure",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "{{paymentId}}",
+                "failure"
+              ]
+            },
+            "description": "Informational: records the attempt and reconciles; it never marks an order failed or paid by itself.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BAD_REQUEST_ERROR\",\n  \"description\": \"Payment declined in test mode\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    if (!pm.variables.get('paymentId')) {",
+                  "        console.log('Skipping \"' + pm.info.requestName + '\": no payment order was created (payments disabled?)');",
+                  "        pm.execution.skipRequest();",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Webhook (signed)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Razorpay-Signature",
+                "value": "{{webhookSignature}}"
+              },
+              {
+                "key": "X-Razorpay-Event-Id",
+                "value": "evt_postman_{{$timestamp}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "webhook"
+              ]
+            },
+            "description": "Normally called by Razorpay, not by people. Set the collection variable webhookSecret to the same value as RAZORPAY_WEBHOOK_SECRET to sign the body; with an empty secret the server answers 400 INVALID_SIGNATURE, or 503 WEBHOOKS_DISABLED when the server has no webhook secret. The sample event (payment.authorized for an unknown order) is acknowledged and ignored. Events are deduplicated by X-Razorpay-Event-Id.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"entity\":\"event\",\"event\":\"payment.authorized\",\"payload\":{\"payment\":{\"entity\":{\"id\":\"pay_POSTMAN0000001\",\"order_id\":\"order_POSTMAN000001\",\"amount\":100,\"currency\":\"INR\",\"status\":\"authorized\"}}}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200,400,503]', function () {",
+                  "        pm.expect([200,400,503]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const code = pm.response.json().code;",
+                  "    pm.test('Unsigned/unknown events are never applied', function () {",
+                  "        if (pm.response.code === 503) pm.expect(code).to.eql('WEBHOOKS_DISABLED');",
+                  "        if (pm.response.code === 400) pm.expect(code).to.eql('INVALID_SIGNATURE');",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    // Razorpay signs the exact raw body with the webhook secret (HMAC-SHA256, hex).",
+                  "    const secret = pm.variables.get('webhookSecret');",
+                  "    const raw = pm.request.body.raw;",
+                  "    pm.collectionVariables.set('webhookSignature', secret ? CryptoJS.HmacSHA256(raw, secret).toString(CryptoJS.enc.Hex) : 'unsigned');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "description": "One review per customer per product; averages are calculated by the server.",
+      "item": [
+        {
+          "name": "List product reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/reviews?sort=newest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "reviews"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "newest"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Includes a 1–5 star breakdown', function () {",
+                  "        pm.expect(pm.response.json().data.summary.breakdown).to.have.all.keys('1', '2', '3', '4', '5');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "reviews"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"title\": \"Quietly perfect\",\n  \"comment\": \"The drape is exceptional and the cashmere is dense.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201]', function () {",
+                  "        pm.expect([201]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.collectionVariables.set('reviewId', pm.response.json().data.review.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Duplicate review → 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "reviews"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 1,\n  \"comment\": \"Second opinion.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [409]', function () {",
+                  "        pm.expect([409]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('DUPLICATE_REVIEW', function () {",
+                  "        pm.expect(pm.response.json().code).to.eql('DUPLICATE_REVIEW');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid rating → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "reviews"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 6,\n  \"comment\": \"Too many stars.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update own review",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/{{reviewId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reviews",
+                "{{reviewId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete own review",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/{{reviewId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reviews",
+                "{{reviewId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Every route here is protected on the server by authenticate + authorize(\"admin\"). Fill adminEmail and adminPassword (an account created with `npm run create-admin`); otherwise these requests are skipped.",
+      "item": [
+        {
+          "name": "Customer calling admin dashboard → 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "dashboard"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [403]', function () {",
+                  "        pm.expect([403]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const data = pm.response.json().data;",
+                  "    pm.test('Role is admin', function () {",
+                  "        pm.expect(data.user.role).to.eql('admin');",
+                  "    });",
+                  "    pm.collectionVariables.set('adminAccessToken', data.accessToken);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    if (!pm.variables.get('adminEmail')) {",
+                  "        console.log('Skipping \"' + pm.info.requestName + '\": set adminEmail and adminPassword');",
+                  "        pm.execution.skipRequest();",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "dashboard"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Statistics from the database', function () {",
+                  "        const stats = pm.response.json().data.stats;",
+                  "        pm.expect(stats).to.include.keys('totalRevenue', 'totalOrders', 'totalCustomers', 'lowStockCount', 'outOfStockCount');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?role=user&search=postman&page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "user"
+                },
+                {
+                  "key": "search",
+                  "value": "postman"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('No secrets in customer list', function () {",
+                  "        pm.expect(pm.response.text()).to.not.include('passwordHash');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List orders (awaiting payment)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders?status=pending_payment&page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending_payment"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Order detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Includes customer and history', function () {",
+                  "        const order = pm.response.json().data.order;",
+                  "        pm.expect(order.customer.email).to.be.a('string');",
+                  "        pm.expect(order.statusHistory.length).to.be.above(0);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid transition (pending → shipped) → 409",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "status"
+              ]
+            },
+            "description": "Only a verified payment can confirm an order; admins move confirmed → processing → shipped → delivered, or cancel before shipping.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shipped\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [409]', function () {",
+                  "        pm.expect([409]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('INVALID_STATUS_TRANSITION', function () {",
+                  "        pm.expect(pm.response.json().code).to.eql('INVALID_STATUS_TRANSITION');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel order (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "status"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\",\n  \"note\": \"Cancelled from Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Cancelled', function () {",
+                  "        pm.expect(pm.response.json().data.order.status).to.eql('cancelled');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refund unpaid order → 409/503",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/refund",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "refund"
+              ]
+            },
+            "description": "Refunds are only possible for paid orders that are cancelled or flagged refund_pending. Returns 503 PAYMENTS_DISABLED when Razorpay is not configured.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Not paid, so nothing to refund\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [409,503]', function () {",
+                  "        pm.expect([409,503]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman {{$timestamp}}\",\n  \"description\": \"Created by the Postman collection\",\n  \"sizeLabel\": \"Size\",\n  \"colorLabel\": \"Colour\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201]', function () {",
+                  "        pm.expect([201]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.collectionVariables.set('adminCategoryId', pm.response.json().data.category.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update category",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{adminCategoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{adminCategoryId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List categories (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ]
+            },
+            "description": "price is in paise (2450000 = ₹24,500). ratingAverage, ratingCount and currency are rejected if sent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Linen Shirt {{$timestamp}}\",\n  \"description\": \"A relaxed linen shirt created by the Postman collection.\",\n  \"price\": 2450000,\n  \"category\": \"{{adminCategoryId}}\",\n  \"images\": [\n    {\n      \"url\": \"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=1500\",\n      \"alt\": \"Linen shirt\"\n    }\n  ],\n  \"sku\": \"PM-{{$timestamp}}\",\n  \"stock\": 5,\n  \"sizes\": [\n    \"S\",\n    \"M\",\n    \"L\"\n  ],\n  \"colors\": [\n    {\n      \"name\": \"Ivory\",\n      \"hex\": \"#EFECE5\"\n    }\n  ],\n  \"attributes\": [\n    {\n      \"name\": \"Origin\",\n      \"value\": \"Portugal\"\n    }\n  ],\n  \"status\": \"inactive\",\n  \"isFeatured\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201]', function () {",
+                  "        pm.expect([201]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    const product = pm.response.json().data.product;",
+                  "    pm.collectionVariables.set('adminProductId', product.id);",
+                  "    pm.test('Ratings are server-controlled', function () {",
+                  "        pm.expect(product.ratingAverage).to.eql(0);",
+                  "        pm.expect(product.ratingCount).to.eql(0);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create product with rating → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Bad\",\n  \"description\": \"Trying to fake ratings.\",\n  \"price\": 1000,\n  \"category\": \"{{adminCategoryId}}\",\n  \"images\": [\n    {\n      \"url\": \"https://images.example.com/x.jpg\"\n    }\n  ],\n  \"sku\": \"PM-BAD-1\",\n  \"stock\": 1,\n  \"ratingAverage\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [400]', function () {",
+                  "        pm.expect([400]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List products (admin, all statuses)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products?status=inactive&page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "inactive"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Product detail (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{adminProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{adminProductId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update product",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{adminProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{adminProductId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 2600000,\n  \"isFeatured\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Price updated, sizes untouched', function () {",
+                  "        const product = pm.response.json().data.product;",
+                  "        pm.expect(product.price).to.eql(2600000);",
+                  "        pm.expect(product.sizes).to.eql(['S', 'M', 'L']);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inventory: adjust −2",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{adminProductId}}/inventory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{adminProductId}}",
+                "inventory"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adjustment\": -2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Stock is 3', function () {",
+                  "        pm.expect(pm.response.json().data.product.stock).to.eql(3);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inventory: negative result → 409",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{adminProductId}}/inventory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{adminProductId}}",
+                "inventory"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adjustment\": -10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [409]', function () {",
+                  "        pm.expect([409]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inventory: set absolute",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{adminProductId}}/inventory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{adminProductId}}",
+                "inventory"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stock\": 12\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete category in use → 409",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{adminCategoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{adminCategoryId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [409]', function () {",
+                  "        pm.expect([409]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('CATEGORY_IN_USE', function () {",
+                  "        pm.expect(pm.response.json().code).to.eql('CATEGORY_IN_USE');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Archive product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{adminProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{adminProductId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('Archived, not destroyed', function () {",
+                  "        pm.expect(pm.response.json().data.product.status).to.eql('archived');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete category (now unused)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{adminCategoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{adminCategoryId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload product image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/uploads/images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "uploads",
+                "images"
+              ]
+            },
+            "description": "multipart/form-data with field \"image\" (JPEG, PNG or WebP, max MAX_UPLOAD_MB). The type is checked from the file bytes. Requires Cloudinary credentials; otherwise 503 UPLOADS_DISABLED. In Postman, choose a file in the Body tab.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "{{uploadImagePath}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [201,503]', function () {",
+                  "        pm.expect([201,503]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    if (!pm.variables.get('uploadImagePath')) {",
+                  "        console.log('Skipping upload: set uploadImagePath to a local JPEG/PNG/WebP file');",
+                  "        pm.execution.skipRequest();",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Suspend customer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{userId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{userId}}",
+                "status"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"suspended\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Suspended customer is blocked → 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [403]', function () {",
+                  "        pm.expect([403]).to.include(pm.response.code);",
+                  "    });",
+                  "",
+                  "    pm.test('ACCOUNT_SUSPENDED', function () {",
+                  "        pm.expect(pm.response.json().code).to.eql('ACCOUNT_SUSPENDED');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reactivate customer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{userId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{userId}}",
+                "status"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "{",
+                  "    pm.test('Status is one of [200]', function () {",
+                  "        pm.expect([200]).to.include(pm.response.code);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminAccessToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "    // Admin requests need adminEmail/adminPassword (create the account with `npm run create-admin`).",
+              "    const ungated = ['Admin login', 'Customer calling admin dashboard → 403'];",
+              "    if (!pm.variables.get('adminEmail') && ungated.indexOf(pm.info.requestName) === -1) {",
+              "        console.log('Skipping \"' + pm.info.requestName + '\": set adminEmail and adminPassword');",
+              "        pm.execution.skipRequest();",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -24,7 +24,7 @@ Untrusted: the browser, every request body/query/param/header, and webhook paylo
 | Duplicate operations | Idempotency keys on order creation; conditional state transitions for verify/webhook/cancel/refund | order & payment services |
 | Uploads | Admin only; memory storage; 5 MB limit; MIME allow-list **and** magic-byte detection (JPEG/PNG/WebP only, so no SVG); random names; stored in Cloudinary, never on local disk | `middlewares/upload.js`, `services/upload.service.js` |
 | Transport & headers | Helmet (CSP, HSTS, nosniff, frame options); CORS allow-list with credentials; `x-powered-by` disabled | `app.js` |
-| Abuse | Per-IP rate limits: auth endpoints 20 / 15 min, API 600 / 15 min (configurable); 100 kB JSON limit | `middlewares/rateLimiter.js` |
+| Abuse | Per-IP rate limits: auth endpoints 20 **failed** attempts / 15 min (successful requests are not counted), API 600 requests / 15 min (configurable); 100 kB JSON limit | `middlewares/rateLimiter.js` |
 | Errors | Central handler; stack traces only outside production; 500s return a generic message | `middlewares/errorHandler.js` |
 | Logging | Pino with redaction of authorization/cookie headers, passwords, tokens and signatures; request ids | `config/logger.js`, `middlewares/requestLogger.js` |
 | Configuration | Env validated at boot; production requires Razorpay keys, webhook secret and `COOKIE_SECURE=true`; `.env` files git-ignored | `config/env.js` |
