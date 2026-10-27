@@ -12,7 +12,7 @@ import { sendPasswordResetEmail } from './email.service.js'
 
 const INVALID_CREDENTIALS = 'Invalid email or password'
 // Compared against when the email is unknown so both paths cost one bcrypt check.
-const DUMMY_HASH = bcrypt.hashSync('vela-timing-equaliser', 10)
+const DUMMY_HASH = bcrypt.hashSync('vela-timing-equaliser', env.BCRYPT_ROUNDS)
 // A token rotated this recently may be replayed by a concurrent tab/request; don't treat it as theft.
 const ROTATION_GRACE_MS = 10_000
 

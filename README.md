@@ -1,364 +1,319 @@
 # Vela — Dressed in Silence
 
-> A full-stack luxury fashion e-commerce platform built with React, Supabase, and Tailwind CSS.
+> A full-stack luxury fashion e-commerce application: React + Vite storefront and admin dashboard, an Express + MongoDB REST API, first-party authentication, and a Razorpay **test-mode** payment flow verified on the server.
 
-![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-2.99-3ECF8E?logo=supabase&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?logo=vite&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%208-47A248?logo=mongodb&logoColor=white)
+![Razorpay](https://img.shields.io/badge/Razorpay-test%20mode-0C2451?logo=razorpay&logoColor=white)
+
+- **Repository:** https://github.com/Riya17171/Vela
+- **Existing live site:** https://vela-black.vercel.app/ — this is the **earlier Supabase-based frontend**. The full-stack version in this repository has not been deployed yet; see [Deployment](#deployment).
 
 ---
 
-## Table of Contents
+## Contents
 
-- [Overview](#overview)
-- [Live Demo](#live-demo)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Design System](#design-system)
-- [Features](#features)
-- [Database Schema](#database-schema)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Database Setup](#database-setup)
-- [Key Technical Decisions](#key-technical-decisions)
-- [Known Limitations](#known-limitations)
+1. [Overview](#overview) · [Problem](#problem-statement) · [Users](#target-users)
+2. [Features](#features)
+3. [Technology stack](#technology-stack)
+4. [Architecture](#architecture)
+5. [Project structure](#project-structure)
+6. [Getting started](#getting-started) — prerequisites, install, environment, database, admin, run
+7. [Authentication](#authentication)
+8. [Razorpay test mode](#razorpay-test-mode)
+9. [API & Postman](#api--postman)
+10. [Testing](#testing)
+11. [Deployment](#deployment)
+12. [Security](#security)
+13. [Known limitations](#known-limitations)
+
+Further reading: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/DATABASE.md](docs/DATABASE.md) · [docs/API.md](docs/API.md) · [docs/SECURITY.md](docs/SECURITY.md) · [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) · [docs/POSTMAN.md](docs/POSTMAN.md)
 
 ---
 
 ## Overview
 
-Vela is an atmosphere-first luxury clothing storefront inspired by houses like Bottega Veneta and The Row. The project explores how editorial design principles — restraint, proportion, silence — can be applied to e-commerce UI without sacrificing functionality.
+Vela is an atmosphere-first luxury storefront inspired by houses like Bottega Veneta and The Row: editorial typography, generous whitespace, restrained motion. The first version was a React frontend that talked straight to Supabase. This version keeps that frontend and its design, and puts a separate **Express API with MongoDB** behind it, which owns all data, authentication, pricing, inventory and payments.
 
-The platform ships two distinct experiences from a single codebase:
+## Problem statement
 
-- **The Storefront** — a client-facing browsing and purchase experience with editorial content, personalised recommendations, and a wishlist/compare system.
-- **The Dashboard** — a data-dense admin interface for product management, order fulfilment, customer oversight, and category taxonomy.
+A storefront that only *looks* complete fails exactly where commerce gets hard: who is allowed to do what, what the price really is, whether the last unit is still available, and whether money actually arrived. The original Vela computed totals in the browser, collected raw card numbers in a form, and showed "Transaction securely approved" without any payment. This project replaces that with a backend that is the single source of truth for identity, prices, stock, orders and payment state.
 
----
+## Target users
 
-## Live Demo
-
-🚀 **Storefront:** https://vela-6r9c3riw9-riya17171s-projects.vercel.app
-🔐 Admin access available via demo account (configured in database)
-## Tech Stack
-
-| Layer | Technology | Rationale |
-|---|---|---|
-| Framework | React 19 | Concurrent features, `React.lazy` for code splitting |
-| Build tool | Vite 8 | Sub-second HMR, native ESM, Rolldown bundler |
-| Styling | Tailwind CSS v3 + PostCSS | Utility-first with a custom luxury design token system |
-| Animation | Framer Motion 12 | Physics-based springs, AnimatePresence for route transitions |
-| Backend | Supabase (PostgreSQL) | Real-time DB, Auth, Storage, and Row Level Security in one service |
-| Forms | React Hook Form + Yup | Uncontrolled inputs, schema validation, minimal re-renders |
-| Routing | React Router DOM v7 | File-based route splitting with `React.lazy` + `Suspense` |
-| Notifications | React Toastify | Silent, non-blocking feedback consistent with the luxury tone |
-
----
-
-## Architecture
-
-### Frontend
-
-The app uses a decoupled layered architecture:
-
-```
-src/
- ├── routes/        # Route definitions, ProtectedRoute, RequireAdmin guards
- ├── pages/         # Route-level components (lazy loaded)
- │    ├── client/   # Storefront pages
- │    └── admin/    # Dashboard pages
- ├── components/    # Shared UI components
- ├── context/       # Global state (Auth, Cart, Wishlist, Compare, Theme)
- ├── hooks/         # Data-fetching hooks that wrap services
- ├── services/      # Supabase query functions — the only layer that touches the DB
- ├── utils/         # Pure helpers (categoryConfig, etc.)
- └── data/          # Static content (editorial articles)
-```
-
-**Data flow:**
-```
-Page Component
-  → Custom Hook (useCart, useProducts…)
-    → Service Function (fetchCartItems, fetchProducts…)
-      → Supabase Client
-        → PostgreSQL (with RLS enforced at DB level)
-```
-
-This separation means the database query logic lives in one place (`/services`), hooks handle loading state and side effects, and pages stay declarative.
-
-### Backend (Supabase)
-
-- **Authentication** — Supabase Auth with JWT. A `handle_new_user` trigger automatically creates a `profiles` row on signup.
-- **Row Level Security** — every table has RLS enabled. Users can only read/write their own rows. Admin writes are gated behind an `is_admin()` function that checks `profiles.role = 'admin'`.
-- **Storage** — product images upload to a `product-images` bucket. Public read, admin-only write enforced via storage RLS policies.
-
----
-
-## Design System
-
-All design tokens are defined in two places and kept in sync: `tailwind.config.js` and `src/index.css`.
-
-### Palette
-
-The palette deliberately avoids pure black (`#000`) and pure white (`#fff`). Every tone is slightly warm.
-
-| Token | Light mode | Dark mode | Usage |
-|---|---|---|---|
-| `ivory` | `#F7F5F0` | `#0F0E0C` | Page background |
-| `parchment` | `#EFECE5` | `#1A1916` | Card backgrounds |
-| `silk` | `#E5E1D8` | `#2A2823` | Borders |
-| `charcoal` | `#1A1916` | `#F0EDE6` | Primary text |
-| `warmgray` | `#8A877F` | `#7A776F` | Secondary text, labels |
-| `obsidian` | `#0D0C0A` | `#FDFCF9` | Primary CTAs |
-| `cream` | `#FDFCF9` | `#0D0C0A` | Text on dark surfaces |
-
-### Dark Mode
-
-Dark mode is toggled via a `data-theme="dark"` attribute on `<html>`. All CSS variables re-map automatically — no component needs a `dark:` class. The toggle is persisted to `localStorage` via `ThemeContext`.
-
-### Typography
-
-- **Display / Headings** — Cormorant Garamond (300, 400, 600) — serif with high contrast strokes
-- **Body / UI** — DM Sans (300, 400, 500) — geometric grotesque with optical sizing
-- **Labels** — tracked out uppercase via `tracking-luxury: 0.18em` — a custom Tailwind token
-
-### Geometry
-
-All borders and radii are `rounded-none`. The design language is strictly rectilinear — no pill buttons, no card rounding.
+- **Customers** browse the catalogue, filter and compare pieces, keep a wishlist and bag across devices, check out with Razorpay, and track or cancel orders.
+- **Administrators** (provisioned from the command line, never via sign-up) manage products, inventory, categories, orders, refunds and customer accounts from the dashboard.
 
 ---
 
 ## Features
 
-### Storefront (Client)
+**Storefront**
+- Catalogue with search, category/size/colour/price/in-stock filters, whitelisted sorting and pagination (filters live in the URL).
+- Product pages with real variants (sizes, colours), image gallery, stock status, attributes, and reviews with a server-calculated rating breakdown.
+- Persistent bag and wishlist (MongoDB), live prices, and flags for pieces that sold out or were withdrawn.
+- Comparison of up to 4 pieces (browser-local ids, always re-fetched from the API).
+- Recently viewed tracking and rule-based recommendations (no machine learning — see [ARCHITECTURE](docs/ARCHITECTURE.md#recommendations)).
+- Checkout with saved or new addresses → server-priced pending order with reserved stock → Razorpay Checkout → server verification → confirmation page.
+- Order history and detail with timeline, "complete payment" for unpaid orders, and cancellation rules.
+- Account page: profile, address book, password change. Forgot/reset password by email.
+- Journal (newsletter) sign-up, dark mode, editorial pages, responsive layouts.
 
-| Feature | Implementation notes |
-|---|---|
-| Full-screen editorial hero | Framer Motion `AnimatePresence` image crossfade, per-letter entrance animation on headline |
-| Category strip | Live product counts fetched from Supabase, CSS `overflow-x` scroll with hidden scrollbar |
-| Product grid | Filtered by category, price, search, sort — all via Supabase query composition |
-| Infinite pagination | Offset-based `loadMore` with deduplication via `Set` of existing IDs |
-| Product detail | Accordion specs, size/colour/volume selectors driven by `categoryConfig.js` per product type |
-| Optimistic cart updates | UI reflects changes immediately; Supabase write happens async; reload reconciles |
-| Wishlist | Same optimistic pattern as cart; heart icon toggles instantly |
-| Compare table | Up to 4 products side-by-side; persisted to `localStorage` via `CompareContext` |
-| Recently viewed | Logged on product detail mount via Supabase `upsert`; capped at 20 per user with auto-pruning |
-| Personalised recommendations | Fetches products from the same categories as recently viewed items, excluding already-seen |
-| Review system | Star rating breakdown, per-user review submission, profiles joined for display name |
-| Order history | Full order list with status badges; expandable detail view with line items |
-| Checkout | React Hook Form + Yup schema, simulated payment flow, order + order_items inserted transactionally |
-| Editorial journal | Static articles in `data/editorial.js`, slug-based routing, related articles section |
-| Dark mode | System-agnostic toggle, `localStorage` persistence, zero flicker on load |
-| Responsive nav | Full-screen mobile overlay with `translate-y` transition; desktop transparent-on-scroll |
-
-### Admin Dashboard
-
-| Feature | Implementation notes |
-|---|---|
-| Stats overview | 4 parallel Supabase queries aggregated in `fetchDashboardStats` |
-| Product CRUD | Create/edit form with Supabase Storage image upload; delete with confirmation guard |
-| Image upload | File → Supabase Storage bucket → public URL stored in product row |
-| Order management | Status filter tabs, inline status select with optimistic table update |
-| Customer list | Profiles with role=user, order count joined |
-| Category management | Auto-slug generation from name input, create/delete with table reflection |
-| Breadcrumb nav | Derived from `useLocation().pathname` — no manual config |
-| Role-based access | `RequireAdmin` wrapper checks `isAdmin` from `AuthContext`; DB-level RLS is the actual enforcement |
+**Admin dashboard** (`/admin`, admin role enforced by the API)
+- Revenue (paid orders), order counts by status, customers, low/out-of-stock alerts, orders needing attention.
+- Products: create/edit/archive, inline stock edits, status (active/inactive/archived), featured flag, image URLs or Cloudinary uploads.
+- Categories: create, hide/show, delete (blocked while in use).
+- Orders: filter/search, inspect, valid status transitions only, refunds through Razorpay.
+- Customers: search, order counts and spend, suspend/reactivate (revokes sessions).
 
 ---
 
-## Database Schema
+## Technology stack
 
-```sql
-profiles          -- extends auth.users (id, full_name, avatar_url, role)
-products          -- (id, title, description, price, category, image_url, rating, rating_count, is_featured)
-categories        -- (id, name, slug, image_url)
-cart_items        -- (id, user_id, product_id, quantity) UNIQUE(user_id, product_id)
-wishlist_items    -- (id, user_id, product_id) UNIQUE(user_id, product_id)
-orders            -- (id, user_id, status, subtotal, tax, total)
-order_items       -- (id, order_id, product_id, quantity, price_at_purchase)
-reviews           -- (id, product_id, user_id, rating 1-5, comment)
-recently_viewed   -- (id, user_id, product_id, viewed_at) UNIQUE(user_id, product_id)
-```
-
-All tables have RLS enabled. The `is_admin()` function gates all admin write operations at the database level — frontend guards are a UX convenience, not a security mechanism.
+| Layer | Technology | Role |
+|---|---|---|
+| Frontend | React 19, Vite 8, React Router 7 | SPA with lazy-loaded routes |
+| Styling | Tailwind CSS 3, Framer Motion | Existing Vela design system and motion |
+| Forms | React Hook Form + Yup | Client validation mirroring the API rules |
+| HTTP | Axios | Central client with token refresh and typed errors |
+| API | Node.js ≥ 20.19, Express 5 | REST API under `/api/v1` (ES modules) |
+| Database | MongoDB + Mongoose 8 | Persistence, indexes, transactions on replica sets |
+| Validation | Zod 4 | Strict request schemas (unknown keys rejected) |
+| Auth | jsonwebtoken, bcryptjs, cookie-parser | Short-lived JWT + rotating httpOnly refresh cookie |
+| Security | helmet, cors, express-rate-limit | Headers, origin allow-list, throttling |
+| Payments | `razorpay` (official SDK) | Orders, payment fetch/capture, refunds, webhooks |
+| Logging | pino, pino-http | Structured logs with secret redaction |
+| Optional | nodemailer (SMTP), cloudinary | Reset emails, image uploads |
+| Tests | Vitest, Supertest, mongodb-memory-server, Testing Library | API, business logic and UI tests |
 
 ---
 
-## Project Structure
+## Architecture
 
 ```
-vela/
- ├── db/
- │    └── seeds/
- │         ├── seed.js                        # Script to fetch DummyJSON products
- │         ├── seed_products.sql              # Generated seed output
- │         ├── supabase_seed_luxury.sql       # First luxury catalog (8 products)
- │         └── supabase_seed_luxury_expanded.sql  # Full catalog (40+ products)
- ├── public/
- │    ├── favicon.svg
- │    └── icons.svg
- ├── src/
- │    ├── assets/
- │    ├── components/
- │    │    ├── admin/        # ProductForm, Primitives (StatCard, DataTable, etc.)
- │    │    ├── Filters/      # Sidebar category/sort/size/colour filters
- │    │    ├── Footer/
- │    │    ├── home/         # Hero, CategoryStrip, EditorialTeaser, etc.
- │    │    ├── layout/       # AppLayout, AdminLayout, ErrorBoundary
- │    │    ├── Navbar/
- │    │    ├── ProductCard/
- │    │    ├── ProductGrid/
- │    │    └── ReviewSection/
- │    ├── context/
- │    │    ├── AuthContext.jsx
- │    │    ├── CartContext.jsx
- │    │    ├── CompareContext.jsx
- │    │    ├── ThemeContext.jsx
- │    │    └── WishlistContext.jsx
- │    ├── data/
- │    │    └── editorial.js   # Static article content
- │    ├── hooks/
- │    │    ├── useAdminOrders.js
- │    │    ├── useAdminProducts.js
- │    │    ├── useAdminStats.js
- │    │    ├── useCart.js
- │    │    ├── useDebounce.js
- │    │    ├── useFilter.js
- │    │    ├── useOrders.js
- │    │    ├── useProducts.js
- │    │    ├── useRecentlyViewed.js
- │    │    ├── useReviews.js
- │    │    └── useWishlist.js
- │    ├── lib/
- │    │    └── supabaseClient.js   # Singleton client, null-safe export
- │    ├── pages/
- │    │    ├── admin/   # Dashboard, ProductsAdmin, OrdersAdmin, CustomersAdmin, CategoriesAdmin
- │    │    └── client/  # Home, Products, ProductDetail, Cart, Checkout, Wishlist,
- │    │                 # Compare, Orders, OrderDetail, Login, Register, About,
- │    │                 # Editorial, EditorialArticle
- │    ├── routes/
- │    │    ├── ProtectedRoute.jsx
- │    │    ├── RequireAdmin.jsx
- │    │    └── routes.jsx
- │    ├── services/
- │    │    ├── admin.js
- │    │    ├── cart.js
- │    │    ├── orders.js
- │    │    ├── products.js
- │    │    ├── recentlyViewed.js
- │    │    ├── reviews.js
- │    │    └── wishlist.js
- │    ├── utils/
- │    │    └── categoryConfig.js   # Per-category size/colour/volume config
- │    ├── App.jsx
- │    ├── index.css
- │    └── main.jsx
- ├── supabase/
- │    ├── rls.sql        # is_admin() function + all RLS policies
- │    └── storage.sql    # product-images bucket policies
- ├── supabase_schema.sql  # Full schema + triggers + basic policies
- ├── tailwind.config.js
- ├── vite.config.js
- ├── postcss.config.js
- └── eslint.config.js
+React page ──► hook / context ──► service (Axios client) ──► Express route
+                                                               │
+              validate (Zod) ◄── authenticate ◄── authorize ◄──┘
+                     │
+                 controller ──► service (orders, payments, inventory, auth…) ──► Mongoose model ──► MongoDB
+                                         │
+                                         └──► Razorpay API  (webhooks come back to /payments/webhook)
+```
+
+- **Frontend (`frontend/`)** renders and collects input. It never decides a price, a role or a payment result.
+- **API (`backend/`)** follows MVC + services: routes wire middleware to controllers; controllers stay thin; services hold business rules (pricing, inventory reservation, order state machine, payment verification, token rotation); models define schemas and indexes.
+- **Checkout** reserves stock atomically when the pending order is created (inside a MongoDB transaction when the deployment supports it), and confirms the order only after the Razorpay signature **and** the payment fetched from Razorpay both check out. Webhooks reconcile the same state idempotently.
+
+Details, diagrams and design decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+---
+
+## Project structure
+
+```
+Vela/
+├── backend/                 Express API
+│   ├── src/
+│   │   ├── config/          env validation, database, Razorpay, logger, business rules
+│   │   ├── models/          User, Product, Category, Cart, Wishlist, Order, Payment, Review,
+│   │   │                    RefreshToken, RecentlyViewed, WebhookEvent, NewsletterSubscriber
+│   │   ├── validators/      Zod schemas per resource
+│   │   ├── middlewares/     authenticate, authorize, validate, rejectOperators, verifyOrigin,
+│   │   │                    rateLimiter, requestLogger, upload, errorHandler, notFound
+│   │   ├── services/        auth, cart, catalog, inventory, order, orderStatus, payment,
+│   │   │                    pricing, review, email, upload
+│   │   ├── controllers/     one per resource + admin + meta (health/config/newsletter)
+│   │   ├── routes/          /api/v1 routers
+│   │   ├── utils/           ApiError, ApiResponse, tokens, cookies, pagination, serializers…
+│   │   ├── scripts/         seed, createAdmin, healthCheck, devDatabase (+ data/catalog.js)
+│   │   ├── app.js           Express setup
+│   │   └── server.js        bootstrap, expiry sweep, graceful shutdown
+│   └── tests/               unit/ and integration/ (in-memory replica set)
+├── frontend/                React storefront + admin
+│   └── src/
+│       ├── services/        apiClient + one module per API area
+│       ├── context/         Auth, Config, Cart, Wishlist, Compare, Theme
+│       ├── hooks/           useAsync, useProducts, useFilter, useRazorpayCheckout…
+│       ├── pages/           client/, auth/, profile/, admin/
+│       ├── components/      common/, checkout/, profile/, admin/, layout/, home/ …
+│       ├── validators/      Yup schemas
+│       └── utils/           money/status formatting
+├── docs/                    architecture, database, API, security, deployment, Postman
+│   └── legacy-supabase/     the original Supabase schema/seed, kept for reference
+├── postman/                 Vela.postman_collection.json
+├── render.yaml              Render blueprint for the API
+└── package.json             root scripts (dev, test, lint, seed, …)
 ```
 
 ---
 
-## Getting Started
+## Getting started
 
 ### Prerequisites
 
-- Node.js >= 20
-- A [Supabase](https://supabase.com) project (free tier works)
+- **Node.js 20.19+** (22 or 24 recommended) and npm 10+.
+- **MongoDB**, one of:
+  - **MongoDB Atlas** (free tier works; it is a replica set, so transactions are used), or
+  - **Docker**: `docker run -d --name vela-mongo -p 27017:27017 mongo:7 --replSet rs0` then `docker exec vela-mongo mongosh --eval "rs.initiate()"`, or
+  - **No install at all**: `npm run db:dev` starts a local single-node replica set using the `mongod` binary that `mongodb-memory-server` downloads (data persists in `backend/.mongo-data`).
+- A free **Razorpay** account in **Test Mode** for payments (optional to browse; required to check out).
 
-### Installation
+> macOS note: port 5000 is taken by AirPlay Receiver, so the API defaults to **4000**.
+
+### 1. Install
 
 ```bash
-# Clone the repository
-git clone https://github.com/riya17171/Vela.git
-cd VELA
-
-# Install dependencies
-npm install
-
-# Create your environment file
-cp .env.example .env
-# Fill in your Supabase credentials (see Environment Variables below)
-
-# Start the development server
-npm run dev
+git clone https://github.com/Riya17171/Vela.git
+cd Vela
+npm install            # root tooling (concurrently)
+npm run install:all    # installs backend/ and frontend/ dependencies separately
 ```
 
-Navigate to `http://localhost:5173`.
+The root `npm install` does **not** install the apps' dependencies; `install:all` does (or run `npm install` inside each folder).
+
+### 2. Environment
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+Edit `backend/.env`:
+
+| Variable | Required | Notes |
+|---|---|---|
+| `MONGODB_URI` | yes | e.g. `mongodb://127.0.0.1:27017/vela?replicaSet=rs0` or your Atlas URI |
+| `JWT_ACCESS_SECRET` | yes | ≥ 32 random chars: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
+| `CLIENT_ORIGINS` | yes | `http://localhost:5173` locally (comma-separated list) |
+| `APP_URL` | yes | storefront URL used in emails, `http://localhost:5173` |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | for checkout | test keys (`rzp_test_…`); live keys are refused by default |
+| `RAZORPAY_WEBHOOK_SECRET` | for webhooks | the secret you set when creating the webhook |
+| `COOKIE_SECURE` / `COOKIE_SAMESITE` | | `false`/`lax` locally; see [Deployment](#deployment) |
+| `TAX_RATE`, `SHIPPING_FEE`, `FREE_SHIPPING_THRESHOLD`, `ORDER_RESERVATION_MINUTES`, … | | business rules; money in **paise** |
+| `SMTP_*`, `CLOUDINARY_*` | optional | email delivery and image uploads |
+
+Every variable is documented in [`backend/.env.example`](backend/.env.example) and validated at startup; a missing or invalid value stops the server with a readable list of problems. The frontend only needs `VITE_API_URL` (default `/api/v1`, proxied by Vite to the API). **Never** put secrets in `VITE_*` variables — they are shipped to every browser.
+
+### 3. Database, seed data and an administrator
+
+```bash
+npm run db:dev            # only if you chose the no-install option (keep it running)
+npm run seed              # 6 categories + 37 products (safe to re-run)
+npm run create-admin      # prompts for email, name and password
+```
+
+- The seed **upserts** by slug/SKU: re-running refreshes descriptions but keeps live stock and ratings. `npm run seed -- --reset` wipes catalogue, carts, orders and payments first (development only; refused in production). It creates **no user accounts**.
+- The catalogue comes from the original Supabase seed. Prices were converted from USD at a fixed ₹85/USD (rounded to ₹500) because Razorpay test mode settles in INR. Stock levels are deterministic and include low-stock and sold-out pieces to demonstrate those states.
+- `create-admin` reads `ADMIN_EMAIL`, `ADMIN_NAME`, `ADMIN_PASSWORD` from the environment if set, otherwise prompts (password hidden). It can promote an existing customer after confirmation, and refuses to run in production unless `ALLOW_ADMIN_PROVISIONING=true`. There is no HTTP endpoint that creates admins.
+
+### 4. Run
+
+```bash
+npm run dev               # API on http://localhost:4000 and storefront on http://localhost:5173
+# or separately
+npm run dev:backend
+npm run dev:frontend
+```
+
+Open http://localhost:5173. Health check: `npm run health` or `GET http://localhost:4000/api/v1/health`.
 
 ---
 
-## Environment Variables
+## Authentication
 
-Create a `.env` file in the project root:
-
-```env
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
-```
-
-Both values are found in your Supabase project under **Settings → API**.
-
-> The app is designed to degrade gracefully when Supabase is not configured — `supabaseClient.js` exports `null` and all service functions check for it before executing. The storefront UI renders but data operations silently no-op.
+- **Register / login** return a short-lived **access token** (JWT, 15 min, HS256) in the JSON body and set a **refresh token** as an `httpOnly` cookie scoped to `/api/v1/auth`. The frontend keeps the access token in memory only; nothing sensitive is in `localStorage`.
+- **Refresh** (`POST /auth/refresh`) rotates the refresh token on every use. Only a SHA-256 hash is stored. Re-using an already-rotated token revokes the whole session family (theft detection); a 10-second grace window tolerates two tabs refreshing at once.
+- **Logout** revokes the session; **password change/reset** bumps `tokenVersion` (killing every outstanding access token immediately) and revokes all refresh sessions.
+- **Authorization**: `authenticate` loads the user from the database on every request (so suspensions take effect at once) and `authorize('admin')` guards every `/admin` route. Roles are never taken from the client; registration and profile updates reject `role` outright.
+- **CSRF**: bearer-token endpoints are not cookie-authenticated. The two cookie endpoints (`/auth/refresh`, `/auth/logout`) check the `Origin` header against `CLIENT_ORIGINS`, on top of `SameSite`.
+- **Forgot password** always answers the same way, stores only a hashed single-use token (30 min), and emails a link. Without SMTP, in **development only**, the link is printed to the API console — it is never returned over HTTP.
 
 ---
 
-## Database Setup
+## Razorpay test mode
 
-Run the following SQL files in your Supabase SQL Editor **in this exact order**:
+### Configure
+
+1. Create a Razorpay account → switch the dashboard to **Test Mode** → *Account & Settings → API Keys* → generate a key pair.
+2. Put them in `backend/.env` as `RAZORPAY_KEY_ID=rzp_test_…` and `RAZORPAY_KEY_SECRET=…`, then restart the API. The secret stays on the server; the browser only receives the key id.
+3. Webhooks (optional locally, recommended when deployed): *Webhooks → Add* with URL `https://<your-api>/api/v1/payments/webhook`, a secret of your choice (→ `RAZORPAY_WEBHOOK_SECRET`) and events `payment.captured`, `payment.failed`, `order.paid`, `refund.processed`, `refund.failed`. To receive webhooks locally, expose port 4000 with a tunnel such as ngrok or cloudflared.
+
+### Flow
 
 ```
-1. supabase_schema.sql              -- Creates all tables, triggers, and basic RLS policies
-2. supabase/rls.sql                 -- Adds is_admin() function and fine-grained admin policies
-3. supabase/storage.sql             -- Configures the product-images storage bucket
-4. db/seeds/supabase_seed_luxury_expanded.sql  -- Populates the full product catalog
+Checkout form ─► POST /orders                 server prices the bag, reserves stock, order = pending_payment
+              ─► POST /payments/create-order  Razorpay order for exactly order.total (paise)
+              ─► Razorpay Checkout (browser)  customer pays with test credentials
+              ─► POST /payments/verify        HMAC signature check (constant-time)
+                                              + fetch payment from Razorpay: same order, amount, currency, captured
+                                              → order confirmed, purchased items removed from the bag
+Webhook  ─────► POST /payments/webhook        signed, de-duplicated by event id; same confirmation path
+Window closed ─► POST /payments/:id/reconcile asks Razorpay what happened — closing is not treated as failure
 ```
 
-### Creating an Admin Account
+- Unpaid orders hold their stock for `ORDER_RESERVATION_MINUTES` (default 30) and then expire, releasing it. A payment that arrives after expiry revives the order if stock is still available, otherwise it is flagged for an admin refund.
+- Cancelling a **paid** order never refunds automatically: it becomes `refund_pending` and an admin issues the refund from the dashboard (`POST /admin/orders/:id/refund`).
 
-1. Register a new account through the storefront (`/register`)
-2. In your Supabase dashboard, go to **Table Editor → profiles**
-3. Find the row for your new user and set `role` to `'admin'`
-4. Log out and back in — you'll be redirected to `/admin` on login
+### Test a payment manually
+
+1. Configure test keys as above, run the app, sign in as a customer, add a piece to the bag and go to checkout.
+2. Click **Pay** → Razorpay Checkout opens in test mode. Pay with UPI ID `success@razorpay` (or `failure@razorpay` to see a failure), or a test card from Razorpay's docs: [test UPI details](https://razorpay.com/docs/payments/payments/test-upi-details/), [test cards](https://razorpay.com/docs/payments/payments/test-card-details/).
+3. On success you land on the order page showing **Confirmed / Paid**, and the Razorpay dashboard (Test Mode → Transactions) shows the payment. Try a failure method or close the window to see the order stay *Awaiting payment* with a "Pay" button.
+
+**What was verified here:** the integration, signature and webhook logic are covered by automated tests with the Razorpay API stubbed, and the browser flow was exercised up to the point where keys are required. A real test-mode payment against Razorpay has **not** been executed in this environment because no Razorpay credentials were available — see [Known limitations](#known-limitations).
 
 ---
 
-## Key Technical Decisions
+## API & Postman
 
-### Why Supabase over a custom Express/Node backend?
+All endpoints live under `/api/v1` and return `{ success, message, data, meta? }` or `{ success: false, message, code?, errors? }`. Money is always an integer in **paise**. Groups: health/config, auth, users & addresses, products & categories, reviews, cart, wishlist, orders, payments, admin.
 
-Supabase gives PostgreSQL with Row Level Security enforced at the database layer, not the application layer. This means even if someone bypasses the frontend guards entirely and hits the Supabase REST API directly with a stolen anon key, they cannot read or write data they're not authorised for. A custom backend would require building and maintaining that access control separately.
-
-### Why Context API over Redux or Zustand?
-
-The app has three pieces of genuinely global state: authentication status, cart, and wishlist. Redux would add significant boilerplate for data that rarely changes shape. Context API with `useMemo` on the value object is sufficient and keeps the dependency tree lighter. The trade-off is tree-wide re-renders on cart mutations — acceptable at this scale.
-
-### Why React Router v7 over Next.js?
-
-This is a single-page application with no SEO requirement (it's a college project, not a production store). Next.js server components and file-based routing would add complexity without benefit. React Router v7 with `React.lazy` and `Suspense` gives route-level code splitting that achieves the same bundle characteristics without the Next.js mental model overhead.
-
-### Why Framer Motion over CSS animations?
-
-The hero letter-stagger, image crossfade, and scroll-triggered reveals require precise timing coordination between multiple elements. Framer Motion's `variants` and `staggerChildren` make this declarative. The alternative — coordinating multiple `@keyframes` with `animation-delay` — would be brittle and harder to read.
-
-### Why no TypeScript?
-
-This was a deliberate scoping decision for the project timeline. TypeScript would catch the class of bug where a component uses an undeclared import or passes the wrong shape to a service function. It's the first thing that should be added in a production version.
+- Full reference: [docs/API.md](docs/API.md)
+- Postman: import [`postman/Vela.postman_collection.json`](postman/Vela.postman_collection.json); request order and admin workflow in [docs/POSTMAN.md](docs/POSTMAN.md).
 
 ---
 
-## Known Limitations
+## Testing
 
-- **No real payment processing** — the checkout form simulates a transaction. Card details are held only in React state and never transmitted anywhere. Replace with Stripe Elements before any real deployment.
-- **Offset pagination** — the `loadMore` implementation uses offset-based pagination. In a live catalogue with frequent inserts, this can produce duplicate or missing results. Cursor-based pagination is the correct fix.
-- **No image optimisation** — product images are loaded at full resolution from Unsplash. A production version should use `srcSet`, `loading="lazy"`, and serve WebP via an image CDN.
-- **Static editorial content** — articles live in `src/data/editorial.js`. A real implementation would store them in a CMS or a Supabase `articles` table with a rich text field.
-- **No test coverage** — there are no unit, integration, or end-to-end tests. Vitest + React Testing Library for unit tests, and Playwright for e2e flows are the recommended additions.
+```bash
+npm test                  # backend then frontend
+npm run test:backend      # Vitest + Supertest against an in-memory MongoDB replica set
+npm run test:frontend     # Vitest + Testing Library (jsdom)
+npm run lint
+npm run build
+```
+
+- **Backend:** unit tests (pricing, order state machine, signatures, validators, authorization, file-type detection) and integration tests (auth flows incl. refresh-token reuse, profiles, addresses, catalogue filters, cart, wishlist, orders incl. concurrent last-unit purchase and idempotency, payments incl. invalid signatures, amount mismatch, duplicate verify/webhook, late payments, refunds, admin restrictions, reviews, seed idempotency). Razorpay is stubbed; no network calls.
+- **Frontend:** API client refresh/single-flight and error normalisation, login validation and redirects, cart issue states, checkout states (no card form, no checkout without payment keys), money formatting.
+
+Results at the time of writing are in the delivery report; re-run the commands above to reproduce.
+
+---
+
+## Deployment
+
+Recommended: **MongoDB Atlas** (database) + **Render** (API, `render.yaml` included) + **Vercel** (frontend, root directory `frontend`). Step-by-step instructions, cookie/CORS settings for same-site vs cross-site hosting, webhook setup and post-deploy checks are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+Current status: **not deployed.** The existing site at https://vela-black.vercel.app/ still runs the earlier Supabase frontend.
+
+---
+
+## Security
+
+Highlights: bcrypt (12 rounds) password hashing; hashed refresh and reset tokens; refresh rotation with reuse detection; Zod strict schemas against mass assignment; `$`-key rejection against NoSQL operator injection; escaped regex search; server-side prices, totals and roles; ownership checks returning 404; Helmet headers; CORS allow-list with credentials; per-IP rate limits (stricter on auth); 100 kB body limits; magic-byte checked uploads; constant-time HMAC verification; raw-body webhook verification and de-duplication; redacted structured logs; sanitized error responses in production; graceful shutdown. Full write-up with development vs production settings: [docs/SECURITY.md](docs/SECURITY.md).
+
+---
+
+## Known limitations
+
+- **No live Razorpay transaction was run during development** (no credentials available). The flow is implemented with the official SDK and verified with stubbed provider responses; follow [Test a payment manually](#test-a-payment-manually) once keys are configured.
+- **Not deployed.** Deployment files and instructions are provided; nothing has been verified on a public host.
+- **Email and image uploads are optional integrations.** Without SMTP, reset links are only logged in development; without Cloudinary, admins use image URLs.
+- **Guest checkout and a guest bag are not supported** — the bag requires an account, as in the original app. Comparison works for guests (browser-local).
+- **Stock is tracked per product, not per size/colour.** Variants share one stock counter.
+- **Single currency (INR).** Razorpay test accounts settle in INR by default; very large carts may exceed per-transaction limits configured on a Razorpay account.
+- **Search** uses escaped case-insensitive matching on title, description and SKU — adequate for a catalogue of this size, not a full-text search engine.
+- **Seed images** are the original Unsplash URLs; a few do not depict the product named (e.g. the cashmere turtleneck).
+- The original Supabase schema and seed are preserved in `docs/legacy-supabase/` for reference only; the app no longer uses Supabase.
