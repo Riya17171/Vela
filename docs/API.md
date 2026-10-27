@@ -361,7 +361,7 @@ Every route requires **admin** (`authenticate` + `authorize('admin')` on the rou
 | GET | `/admin/orders?page&limit&status&paymentStatus&needsAttention&search` | `search` matches order number |
 | GET | `/admin/orders/:orderId` | admin order view adds `customer`, `razorpayOrderId`, `inventoryState`, `needsAttention`, `attentionReason` |
 | PATCH | `/admin/orders/:orderId/status` | `{ status: "processing" \| "shipped" \| "delivered" \| "cancelled", note? }`; invalid moves → 409 `INVALID_STATUS_TRANSITION`, same status → 409 `NO_OP_TRANSITION`, any other status → 400 |
-| POST | `/admin/orders/:orderId/refund` | `{ reason? }` → `{ refund: { id, status, amount }, order }`. Only for `refund_pending` orders or paid orders that are cancelled (409 `NOT_REFUNDABLE`); one refund per payment (409 `REFUND_EXISTS`); 503 `PAYMENTS_DISABLED` without Razorpay keys |
+| POST | `/admin/orders/:orderId/refund` | `{ reason? }` → `{ refund: { id, status, amount }, order }`. Only for `refund_pending` orders or paid orders that are cancelled (409 `NOT_REFUNDABLE`); one refund per payment (409 `REFUND_EXISTS`); 502 `REFUND_REJECTED` when Razorpay refuses the refund (e.g. insufficient refundable balance on a test account; the order stays `refund_pending` and can be retried); 503 `PAYMENTS_DISABLED` without Razorpay keys |
 
 ### Products
 

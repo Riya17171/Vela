@@ -21,7 +21,7 @@ export default function CategoryStrip() {
             viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.6, delay: i * 0.06, ease: 'easeOut' }}
           >
-            {cat.imageUrl && <img src={cat.imageUrl} alt={cat.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />}
+            {cat.imageUrl && <img src={cat.imageUrl} alt={cat.name} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />}
             <div className="absolute inset-0 bg-charcoal/20 group-hover:bg-charcoal/40 transition-colors duration-300" />
             <div className="absolute bottom-0 left-0 right-0 p-6">
               <h3 className="font-display text-2xl font-light text-cream">{cat.name}</h3>

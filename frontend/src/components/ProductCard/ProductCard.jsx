@@ -1,6 +1,7 @@
 import { FiBarChart2, FiHeart, FiStar } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import ProductImage from '../common/ProductImage.jsx'
 
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useCartContext } from '../../context/CartContext.jsx'
@@ -51,7 +52,7 @@ export default function ProductCard({ product, hideCategory = false }) {
   return (
     <Link to={`/products/${product.slug ?? product.id}`} className="block group bg-parchment rounded-none cursor-pointer transition-colors duration-300 hover:bg-silk focus:outline-none focus-visible:ring-1 focus-visible:ring-charcoal">
       <div className="relative aspect-[3/4] overflow-hidden bg-ivory dark:bg-white border-b border-silk">
-        <img
+        <ProductImage
           src={product.image}
           alt={product.title}
           loading="lazy"

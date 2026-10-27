@@ -1,5 +1,6 @@
 import { FiMinus, FiPlus } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
+import ProductImage from '../../components/common/ProductImage.jsx'
 
 import OrderSummary from '../../components/checkout/OrderSummary.jsx'
 import { EmptyState, ErrorState, LoadingState } from '../../components/common/StatusViews.jsx'
@@ -37,7 +38,7 @@ export default function Cart() {
             return (
               <li className={`flex gap-4 sm:gap-6 py-8 border-b border-silk ${item.available ? '' : 'opacity-80'}`} key={item.id}>
                 <Link to={link} className="w-24 md:w-32 aspect-[3/4] bg-ivory dark:bg-white shrink-0 border border-silk hover:border-charcoal transition-colors">
-                  {product?.image && <img src={product.image} alt={product.title} className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal" />}
+                  {product && <ProductImage src={product.image} alt={product.title} className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal" />}
                 </Link>
 
                 <div className="flex-1 flex flex-col justify-between gap-4">
