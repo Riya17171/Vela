@@ -61,7 +61,7 @@ export default function AdminLayout() {
 
     return (
         <div className="min-h-screen flex bg-bg">
-            <aside className="w-64 shrink-0 bg-[#0F0E0C] flex flex-col fixed h-full z-40">
+            <aside className="hidden lg:flex w-64 shrink-0 bg-[#0F0E0C] flex-col fixed h-full z-40">
                 <div className="h-14 flex items-center px-6 border-b border-[#F0EDE6]/10">
                     <Link to="/admin" className="font-sans text-sm font-medium text-[#F0EDE6] tracking-wide">
                         Vela
@@ -110,9 +110,19 @@ export default function AdminLayout() {
                 </div>
             </aside>
 
-            <div className="flex-1 ml-64 flex flex-col min-h-screen">
+            <div className="flex-1 lg:ml-64 flex flex-col min-h-screen min-w-0">
+                {/* Compact navigation for tablets and phones */}
+                <nav className="lg:hidden bg-[#0F0E0C] flex gap-1 overflow-x-auto px-4 py-2" aria-label="Admin">
+                    {NAV_ITEMS.map(item => (
+                        <NavLink key={item.path} to={item.path} end={item.end}
+                            className={({ isActive }) => `flex items-center gap-2 px-3 py-2 text-xs whitespace-nowrap ${isActive ? 'text-[#F0EDE6] bg-[#F0EDE6]/10' : 'text-[#F0EDE6]/50'}`}>
+                            {item.icon}{item.label}
+                        </NavLink>
+                    ))}
+                    <Link to="/" className="px-3 py-2 text-xs whitespace-nowrap text-[#F0EDE6]/50">Storefront</Link>
+                </nav>
                 <header className="h-14 border-b border-silk bg-bg flex items-center
-                           justify-between px-8 sticky top-0 z-30">
+                           justify-between px-4 sm:px-8 sticky top-0 z-30">
                     <Breadcrumb />
                     <div className="flex items-center gap-6">
                         <button
@@ -131,7 +141,7 @@ export default function AdminLayout() {
                     </div>
                 </header>
 
-                <main className="flex-1 p-8">
+                <main className="flex-1 p-4 sm:p-8">
                     <Outlet />
                 </main>
             </div>

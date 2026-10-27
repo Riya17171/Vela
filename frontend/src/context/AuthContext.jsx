@@ -1,131 +1,114 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
-import { supabase } from '../lib/supabaseClient.js'
+import { refreshSession, setSessionExpiredHandler } from '../services/apiClient.js'
+import * as authService from '../services/auth.js'
 
 const AuthContext = createContext(null)
 
+// Per-browser hint that a refresh cookie probably exists, so anonymous visitors
+// don't fire a guaranteed-401 refresh on every page load. The httpOnly cookie
+// remains the only credential; this flag carries no authority.
+const SESSION_HINT = 'vela_has_session'
+
+function readHint() {
+  try {
+    return localStorage.getItem(SESSION_HINT) === '1'
+  } catch {
+    return true
+  }
+}
+
+function writeHint(active) {
+  try {
+    if (active) localStorage.setItem(SESSION_HINT, '1')
+    else localStorage.removeItem(SESSION_HINT)
+  } catch {
+    // Storage unavailable: we simply always attempt a refresh.
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(readHint)
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   useEffect(() => {
     let mounted = true
-
-    async function loadSessionAndProfile() {
-      // If Supabase isn't configured yet, keep the app usable in "public-only" mode.
-      if (!supabase) {
-        if (mounted) setLoading(false)
-        return
-      }
-
-      setLoading(true)
-
-      const { data: sessionData } = await supabase.auth.getSession()
-      const nextUser = sessionData?.session?.user ?? null
-
-      if (!mounted) return
-      setUser(nextUser)
-
-      if (!nextUser) {
-        setIsAdmin(false)
-        setLoading(false)
-        return
-      }
-
-      // Load admin flag from profiles without strict column selection.
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', nextUser.id)
-        .maybeSingle()
-
-      if (!mounted) return
-      if (error) {
-        setIsAdmin(false)
-      } else {
-        setIsAdmin(profile?.role === 'admin')
-      }
-
-      setLoading(false)
+    // Restore the session from the httpOnly refresh cookie, if there is one.
+    if (readHint()) {
+      refreshSession()
+        .then((session) => mounted && setUser(session.user))
+        .catch(() => {
+          writeHint(false)
+          if (mounted) setUser(null)
+        })
+        .finally(() => mounted && setLoading(false))
     }
 
-    loadSessionAndProfile()
-
-    if (!supabase) return () => { }
-
-    const { data: subscriptionData } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        const nextUser = session?.user ?? null
-        setUser(nextUser)
-
-        if (!nextUser) {
-          setIsAdmin(false)
-          setLoading(false)
-          return
-        }
-
-        // Reload admin flag on auth changes.
-        setLoading(true)
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', nextUser.id)
-          .maybeSingle()
-          .then(({ data: profile, error }) => {
-            if (error) setIsAdmin(false)
-            else setIsAdmin(profile?.role === 'admin')
-          })
-          .catch(() => setIsAdmin(false))
-          .finally(() => setLoading(false))
-      },
-    )
-
+    setSessionExpiredHandler(() => {
+      writeHint(false)
+      setUser(null)
+      setSessionExpired(true)
+    })
     return () => {
       mounted = false
-      subscriptionData?.subscription?.unsubscribe?.()
+      setSessionExpiredHandler(() => {})
     }
   }, [])
 
-  async function signIn({ email, password }) {
-    if (!supabase) return { error: new Error('Supabase is not configured') }
-    return await supabase.auth.signInWithPassword({ email, password })
-  }
+  const signIn = useCallback(async (credentials) => {
+    const nextUser = await authService.login(credentials)
+    writeHint(true)
+    setUser(nextUser)
+    setSessionExpired(false)
+    return nextUser
+  }, [])
 
-  async function signOut() {
-    if (!supabase) return
-    await supabase.auth.signOut()
-    setUser(null)
-    setIsAdmin(false)
-  }
+  const signUp = useCallback(async (details) => {
+    const nextUser = await authService.register(details)
+    writeHint(true)
+    setUser(nextUser)
+    setSessionExpired(false)
+    return nextUser
+  }, [])
 
-  async function signUp({ email, password, fullName }) {
-    if (!supabase) return { error: new Error('Supabase is not configured') }
-    return await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } }
-    })
-  }
+  const signOut = useCallback(async () => {
+    try {
+      await authService.logout()
+    } finally {
+      writeHint(false)
+      setUser(null)
+    }
+  }, [])
+
+  const changePassword = useCallback(async (body) => {
+    const nextUser = await authService.changePassword(body)
+    setUser(nextUser)
+    return nextUser
+  }, [])
 
   const value = useMemo(
     () => ({
       user,
-      isAdmin,
+      isAdmin: user?.role === 'admin',
       loading,
+      sessionExpired,
+      clearSessionExpired: () => setSessionExpired(false),
       signIn,
-      signOut,
       signUp,
+      signOut,
+      changePassword,
+      updateUser: setUser,
     }),
-    [user, isAdmin, loading],
+    [user, loading, sessionExpired, signIn, signUp, signOut, changePassword],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')
   return ctx
 }
-

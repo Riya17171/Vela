@@ -15,8 +15,11 @@ const Checkout = React.lazy(() => import('../pages/client/Checkout.jsx'))
 const Compare = React.lazy(() => import('../pages/client/Compare.jsx'))
 const Orders = React.lazy(() => import('../pages/client/Orders.jsx'))
 const OrderDetail = React.lazy(() => import('../pages/client/OrderDetail.jsx'))
-const Login = React.lazy(() => import('../pages/client/Login.jsx'))
-const Register = React.lazy(() => import('../pages/client/Register.jsx'))
+const Login = React.lazy(() => import('../pages/auth/Login.jsx'))
+const Register = React.lazy(() => import('../pages/auth/Register.jsx'))
+const ForgotPassword = React.lazy(() => import('../pages/auth/ForgotPassword.jsx'))
+const ResetPassword = React.lazy(() => import('../pages/auth/ResetPassword.jsx'))
+const Account = React.lazy(() => import('../pages/profile/Account.jsx'))
 const About = React.lazy(() => import('../pages/client/About.jsx'))
 const Editorial = React.lazy(() => import('../pages/client/Editorial.jsx'))
 const EditorialArticle = React.lazy(() => import('../pages/client/EditorialArticle.jsx'))
@@ -44,8 +47,11 @@ export default function AppRoutes() {
           <Route path="compare" element={<Compare />} />
           <Route path="orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
           <Route path="orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+          <Route path="account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
           <Route path="about" element={<About />} />
           <Route path="editorial" element={<Editorial />} />
           <Route path="editorial/:slug" element={<EditorialArticle />} />

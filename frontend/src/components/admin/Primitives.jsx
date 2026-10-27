@@ -1,4 +1,4 @@
-import React from 'react'
+import OrderStatusBadge from '../common/OrderStatusBadge.jsx'
 
 export function StatCard({ label, value, delta, icon }) {
     return (
@@ -48,7 +48,7 @@ export function DataTable({ columns, rows, renderRow, loading, empty }) {
                                 className="px-4 py-12 text-center text-[10px]
                            tracking-luxury uppercase text-warmgray"
                             >
-                                Loading insights...
+                                Loading...
                             </td>
                         </tr>
                     ) : rows.length === 0 ? (
@@ -70,23 +70,8 @@ export function DataTable({ columns, rows, renderRow, loading, empty }) {
     )
 }
 
-const STATUS_STYLES = {
-    pending: 'bg-linen text-warmgray',
-    confirmed: 'bg-parchment text-charcoal border border-silk',
-    shipped: 'bg-charcoal text-cream',
-    delivered: 'bg-obsidian text-cream',
-    cancelled: 'bg-silk text-warmgray line-through',
-}
-
 export function StatusBadge({ status }) {
-    return (
-        <span className={`
-      text-[9px] tracking-luxury uppercase px-3 py-1 rounded-none inline-block
-      ${STATUS_STYLES[status?.toLowerCase()] || 'bg-silk text-warmgray'}
-    `}>
-            {status}
-        </span>
-    )
+    return <OrderStatusBadge status={status} />
 }
 
 export function AdminButton({ children, variant = 'solid', onClick, disabled, type = 'button' }) {

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { FiSearch, FiHeart, FiShoppingCart, FiUser, FiMoon, FiSun, FiMenu, FiX } from 'react-icons/fi'
+import { FiBarChart2, FiSearch, FiHeart, FiShoppingCart, FiUser, FiMoon, FiSun, FiMenu, FiX } from 'react-icons/fi'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useCartContext } from '../../context/CartContext.jsx'
+import { useCompare } from '../../context/CompareContext.jsx'
 import { useWishlistContext } from '../../context/WishlistContext.jsx'
 import { useTheme } from '../../context/ThemeContext.jsx'
 
@@ -12,6 +13,7 @@ export default function Navbar() {
   const { user, signOut, loading, isAdmin } = useAuth()
   const { count: cartCount } = useCartContext()
   const { count: wishlistCount } = useWishlistContext()
+  const { count: compareCount } = useCompare()
   const { theme, toggleTheme } = useTheme()
 
   const [scrolled, setScrolled] = useState(false)
@@ -27,10 +29,13 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
+  // Close overlays when the route changes (adjusting state during render, not in an effect).
+  const [lastPath, setLastPath] = useState(location.pathname)
+  if (lastPath !== location.pathname) {
+    setLastPath(location.pathname)
     setMobileMenuOpen(false)
     setIsSearchOpen(false)
-  }, [location.pathname])
+  }
 
   const navLinks = [
     { label: 'Shop', path: '/products' },
@@ -43,7 +48,7 @@ export default function Navbar() {
   const handleSearchSubmit = (e) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery)}`)
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
       setIsSearchOpen(false)
     }
   }
@@ -54,7 +59,7 @@ export default function Navbar() {
         className={`fixed top-0 left-0 w-full h-16 z-50 transition-all duration-300 border-b border-silk ${scrolled ? 'bg-cream/90 backdrop-blur-sm shadow-sm' : 'bg-cream'
           }`}
       >
-        <div className="max-w-7xl mx-auto px-8 h-full flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-full flex items-center justify-between">
           {/* Left: Logo & Subtext */}
           <div className="flex items-center gap-3">
             <Link to="/" className="font-display text-3xl font-light tracking-tight text-charcoal focus:outline-none">
@@ -84,7 +89,8 @@ export default function Navbar() {
             {isSearchOpen ? (
               <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center border-b border-charcoal pb-1">
                 <input
-                  type="text"
+                  type="search"
+                  aria-label="Search the collection"
                   placeholder="Search..."
                   className="bg-transparent text-sm text-charcoal outline-none w-32 focus:w-48 transition-all duration-300 placeholder:text-warmgray font-sans"
                   value={searchQuery}
@@ -98,13 +104,23 @@ export default function Navbar() {
             ) : (
               <button
                 className="hidden md:block text-charcoal hover:opacity-70 transition-opacity focus:outline-none"
+                aria-label="Search"
                 onClick={() => setIsSearchOpen(true)}
               >
                 <FiSearch size={18} strokeWidth={1.5} />
               </button>
             )}
 
-            <Link to="/wishlist" className="relative text-charcoal hover:opacity-70 transition-opacity focus:outline-none">
+            {compareCount > 0 && (
+              <Link to="/compare" aria-label={`Compare (${compareCount})`} className="relative text-charcoal hover:opacity-70 transition-opacity focus:outline-none">
+                <FiBarChart2 size={18} strokeWidth={1.5} />
+                <span className="absolute -top-1.5 -right-2 bg-obsidian text-cream text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-sans">
+                  {compareCount}
+                </span>
+              </Link>
+            )}
+
+            <Link to="/wishlist" aria-label={`Wishlist (${wishlistCount})`} className="relative text-charcoal hover:opacity-70 transition-opacity focus:outline-none">
               <FiHeart size={18} strokeWidth={1.5} />
               {wishlistCount > 0 && (
                 <span className="absolute -top-1.5 -right-2 bg-obsidian text-cream text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-sans">
@@ -113,7 +129,7 @@ export default function Navbar() {
               )}
             </Link>
 
-            <Link to="/cart" className="relative text-charcoal hover:opacity-70 transition-opacity focus:outline-none">
+            <Link to="/cart" aria-label={`Shopping bag (${cartCount})`} className="relative text-charcoal hover:opacity-70 transition-opacity focus:outline-none">
               <FiShoppingCart size={18} strokeWidth={1.5} />
               {cartCount > 0 && (
                 <span className="absolute -top-1.5 -right-2 bg-obsidian text-cream text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-sans">
@@ -140,7 +156,10 @@ export default function Navbar() {
                       Admin
                     </Link>
                   )}
-                  <Link to="/orders" className="w-8 h-8 rounded-full border border-silk overflow-hidden flex items-center justify-center bg-parchment hover:border-charcoal transition-colors focus:outline-none" title="My Orders">
+                  <Link to="/orders" className="text-[10px] tracking-luxury uppercase text-warmgray hover:text-charcoal transition-colors">
+                    Orders
+                  </Link>
+                  <Link to="/account" className="w-8 h-8 rounded-full border border-silk overflow-hidden flex items-center justify-center bg-parchment hover:border-charcoal transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-charcoal" title="My Account" aria-label="My account">
                     <FiUser size={16} strokeWidth={1.5} className="text-charcoal" />
                   </Link>
                   <button onClick={signOut} className="text-[10px] tracking-luxury uppercase text-warmgray hover:text-charcoal transition-colors focus:outline-none">
@@ -157,6 +176,8 @@ export default function Navbar() {
             {/* Mobile Menu Toggle */}
             <button
               className="lg:hidden text-charcoal focus:outline-none ml-2"
+              aria-label="Open menu"
+              aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(true)}
             >
               <FiMenu size={20} strokeWidth={1.5} />
@@ -175,7 +196,7 @@ export default function Navbar() {
             <span className="font-display text-xl font-light tracking-tight text-charcoal">Vela</span>
             <span className="text-xs tracking-luxury text-warmgray lowercase truncate">a luxury house</span>
           </div>
-          <button onClick={() => setMobileMenuOpen(false)} className="text-charcoal focus:outline-none hover:opacity-70 transition-opacity">
+          <button onClick={() => setMobileMenuOpen(false)} aria-label="Close menu" className="text-charcoal focus:outline-none hover:opacity-70 transition-opacity">
             <FiX size={24} strokeWidth={1.5} />
           </button>
         </div>
@@ -204,8 +225,11 @@ export default function Navbar() {
                     Admin
                   </Link>
                 )}
-                <Link to="/orders" className="text-xs tracking-luxury uppercase text-warmgray hover:text-charcoal transition-colors">
+                <Link to="/account" className="text-xs tracking-luxury uppercase text-warmgray hover:text-charcoal transition-colors">
                   My Account
+                </Link>
+                <Link to="/orders" className="text-xs tracking-luxury uppercase text-warmgray hover:text-charcoal transition-colors">
+                  Orders
                 </Link>
                 <button onClick={signOut} className="text-xs tracking-luxury uppercase text-warmgray hover:text-[#C53030] transition-colors focus:outline-none">
                   Sign Out
