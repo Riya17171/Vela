@@ -9,7 +9,7 @@
 ![Razorpay](https://img.shields.io/badge/Razorpay-test%20mode-0C2451?logo=razorpay&logoColor=white)
 
 - **Repository:** https://github.com/Riya17171/Vela
-- **Existing live site:** https://vela-black.vercel.app/ — this is the **earlier Supabase-based frontend**. The full-stack version in this repository has not been deployed yet; see [Deployment](#deployment).
+- **Live site:** https://vela-black.vercel.app/ (Vercel) · **API:** https://vela-api-5pkm.onrender.com/api/v1/health (Render, free plan; the first request after ~15 idle minutes takes up to a minute while it wakes) · **Database:** MongoDB Atlas · **Payments:** Razorpay test mode
 
 ---
 
@@ -306,7 +306,7 @@ Results at the time of writing are in the delivery report; re-run the commands a
 
 Recommended: **MongoDB Atlas** (database) + **Render** (API, `render.yaml` included) + **Vercel** (frontend, root directory `frontend`). Step-by-step instructions, cookie/CORS settings for same-site vs cross-site hosting, webhook setup and post-deploy checks are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
-Current status: **not deployed.** The existing site at https://vela-black.vercel.app/ still runs the earlier Supabase frontend.
+Current status: **deployed and verified (27 Oct 2026).** Frontend on Vercel (root directory `frontend`, `/api/*` rewritten to Render), API on Render (Singapore, free plan), data on MongoDB Atlas. On the live site the full browser flow (register, filters, bag, session restore, checkout, account, wishlist/compare, admin, mobile) passed, a real Razorpay test payment was verified, a bank-declined payment was recorded without a false success, and the webhook endpoint accepted a correctly signed event and rejected a forged one.
 
 ---
 
@@ -320,7 +320,7 @@ Highlights: bcrypt (12 rounds) password hashing; hashed refresh and reset tokens
 
 - **Webhooks need a public URL.** Locally, refunds stay *Refund pending* in Vela after Razorpay processes them, because the `refund.processed` webhook cannot reach `localhost`; once deployed with the webhook configured they move to *Refunded* automatically.
 - **Razorpay test accounts have a small refundable balance.** Razorpay rejects refunds larger than the remaining balance with the generic message "invalid request sent" (observed: refunds of a few thousand rupees succeed, a ₹35,100 refund was rejected). Vela reports this as `REFUND_REJECTED`, keeps the order *Refund pending* and lets the admin retry; nothing is marked refunded.
-- **Not deployed.** Deployment files and instructions are provided; nothing has been verified on a public host.
+- **Free hosting sleeps.** Render's free instance spins down after ~15 minutes of inactivity; the first request afterwards can take up to a minute.
 - **Email and image uploads are optional integrations.** Without SMTP, reset links are only logged in development; without Cloudinary, admins use image URLs.
 - **Guest checkout and a guest bag are not supported** — the bag requires an account, as in the original app. Comparison works for guests (browser-local).
 - **Stock is tracked per product, not per size/colour.** Variants share one stock counter.

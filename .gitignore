@@ -22,3 +22,5 @@ uploads
 .DS_Store
 *.suo
 *.sw?
+.vercel
+.env*
