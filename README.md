@@ -15,7 +15,7 @@
 
 ## Contents
 
-1. [Overview](#overview) · [Problem](#problem-statement) · [Users](#target-users)
+1. [Overview](#overview) · [Problem](#problem-statement) · [Users](#target-users) · [Solution](#solution)
 2. [Features](#features)
 3. [Technology stack](#technology-stack)
 4. [Architecture](#architecture)
@@ -45,6 +45,16 @@ A storefront that only *looks* complete fails exactly where commerce gets hard: 
 
 - **Customers** browse the catalogue, filter and compare pieces, keep a wishlist and bag across devices, check out with Razorpay, and track or cancel orders.
 - **Administrators** (provisioned from the command line, never via sign-up) manage products, inventory, categories, orders, refunds and customer accounts from the dashboard.
+
+## Solution
+
+Vela splits the product into a React storefront/admin and an Express API that owns every decision that matters:
+
+- **Identity:** first-party accounts with hashed passwords, short-lived access tokens and rotating refresh sessions; admin rights enforced by the server.
+- **Truth about money:** the server prices the bag from the database, reserves stock atomically when an order is created, and only confirms an order after Razorpay's signature *and* the provider's own payment record agree. Failed, abandoned and late payments each have a defined outcome.
+- **Operations:** administrators manage catalogue, inventory, orders (valid status transitions only), refunds and customers from a dashboard backed by the same API.
+
+Core workflows: **browse & filter → bag → checkout & pay → order tracking/cancellation**, and **admin catalogue/inventory/order management**.
 
 ---
 
@@ -315,6 +325,10 @@ Current status: **deployed and verified (27 Oct 2026).** Frontend on Vercel (roo
 Highlights: bcrypt (12 rounds) password hashing; hashed refresh and reset tokens; refresh rotation with reuse detection; Zod strict schemas against mass assignment; `$`-key rejection against NoSQL operator injection; escaped regex search; server-side prices, totals and roles; ownership checks returning 404; Helmet headers; CORS allow-list with credentials; per-IP rate limits (stricter on auth); 100 kB body limits; magic-byte checked uploads; constant-time HMAC verification; raw-body webhook verification and de-duplication; redacted structured logs; sanitized error responses in production; graceful shutdown. Full write-up with development vs production settings: [docs/SECURITY.md](docs/SECURITY.md).
 
 ---
+
+## Originality and AI use
+
+Vela began as my own frontend-only project (React + Supabase; history preserved in this repository and the original schema in `docs/legacy-supabase/`). The Express/MongoDB backend, authentication, checkout/payment logic, admin API, tests and the frontend integration were added for the end-term submission. AI assistance (Claude Code) was used for implementation, testing and documentation, as permitted; all workflows were run and verified on the deployed application. Open-source libraries used are listed in `backend/package.json` and `frontend/package.json`.
 
 ## Known limitations
 
