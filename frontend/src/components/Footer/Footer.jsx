@@ -26,10 +26,10 @@ export default function Footer() {
           {/* Shop */}
           <div className="flex flex-col gap-6 lg:pl-8">
             <h4 className="text-[10px] tracking-luxury uppercase text-cream/50 mb-2">Shop</h4>
-            <Link to="/products?category=women" className="text-xs font-sans text-cream hover:text-cream/70 transition-colors">Women</Link>
-            <Link to="/products?category=men" className="text-xs font-sans text-cream hover:text-cream/70 transition-colors">Men</Link>
-            <Link to="/products?category=new" className="text-xs font-sans text-cream hover:text-cream/70 transition-colors">New Arrivals</Link>
-            <Link to="/products?category=sale" className="text-xs font-sans text-cream hover:text-cream/70 transition-colors">Sale Archive</Link>
+            <Link to="/products?category=womens-rtw" className="text-xs font-sans text-cream hover:text-cream/70 transition-colors">Women</Link>
+            <Link to="/products?category=mens-rtw" className="text-xs font-sans text-cream hover:text-cream/70 transition-colors">Men</Link>
+            <Link to="/products?sort=newest" className="text-xs font-sans text-cream hover:text-cream/70 transition-colors">New Arrivals</Link>
+            <Link to="/products?category=handbags" className="text-xs font-sans text-cream hover:text-cream/70 transition-colors">Leather Goods</Link>
           </div>
 
           {/* House */}

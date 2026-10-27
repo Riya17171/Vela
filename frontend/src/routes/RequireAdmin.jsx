@@ -1,12 +1,18 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 
+import { LoadingState } from '../components/common/StatusViews.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
+/**
+ * Hides the admin UI from non-admins. This is a convenience, not security:
+ * every /api/v1/admin route is protected by authenticate + authorize('admin').
+ */
 export default function RequireAdmin({ children }) {
   const { user, isAdmin, loading } = useAuth()
+  const location = useLocation()
 
-  if (loading) return null
-  if (!user) return <Navigate to="/login" replace />
+  if (loading) return <LoadingState label="Restoring session..." className="min-h-screen" />
+  if (!user) return <Navigate to="/login" replace state={{ from: location }} />
 
   if (!isAdmin) {
     return (
@@ -19,4 +25,3 @@ export default function RequireAdmin({ children }) {
 
   return children
 }
-

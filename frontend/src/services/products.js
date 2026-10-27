@@ -1,50 +1,29 @@
-import { supabase } from '../lib/supabaseClient.js'
+import { request } from './apiClient.js'
 
-export async function fetchProducts({
-  categoryId,
-  minPrice,
-  maxPrice,
-  sort,
-  search,
-  isFeatured,
-  limit,
-  offset = 0,
-} = {}) {
-  if (!supabase) return { products: [], total: 0 }
-
-  let query = supabase.from('products').select('*', { count: 'exact' })
-
-  if (categoryId) query = query.eq('category', categoryId)
-  if (isFeatured) query = query.eq('is_featured', true)
-  if (minPrice) query = query.gte('price', minPrice)
-  if (maxPrice) query = query.lte('price', maxPrice)
-  if (search) query = query.ilike('title', `%${search}%`)
-
-  if (sort === 'price-low') query = query.order('price', { ascending: true })
-  else if (sort === 'price-high') query = query.order('price', { ascending: false })
-  else if (sort === 'rating') query = query.order('rating', { ascending: false })
-  else query = query.order('created_at', { ascending: false }) // newest by default
-
-  if (limit) {
-    query = query.range(offset, offset + limit - 1)
-  }
-
-  const { data, count, error } = await query
-
-  if (error) {
-    console.error('Error fetching products:', error)
-    return { products: [], total: 0 }
-  }
-
-  return { products: data || [], total: count || 0 }
+/** Drops empty values so the API only sees filters the shopper actually set. */
+function cleanParams(params) {
+  return Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== ''))
 }
 
-export async function fetchProductById(id) {
-  if (!supabase) return null
-  const { data, error } = await supabase.from('products').select('*').eq('id', id).single()
-  if (error) {
-    console.error('Error fetching product:', error)
-    return null
-  }
-  return data
+export async function fetchProducts(params = {}) {
+  const { products, meta } = await request({ url: '/products', params: cleanParams(params) })
+  return { products, meta }
+}
+
+export async function fetchProduct(idOrSlug) {
+  return (await request({ url: `/products/${encodeURIComponent(idOrSlug)}` })).product
+}
+
+export async function fetchProductsByIds(ids) {
+  if (!ids.length) return []
+  return (await fetchProducts({ ids: ids.join(','), limit: ids.length })).products
+}
+
+export async function fetchRecommendations(limit = 8) {
+  const { products, reason } = await request({ url: '/products/recommendations', params: { limit } })
+  return { products, reason }
+}
+
+export async function fetchCategories() {
+  return (await request({ url: '/categories' })).categories
 }

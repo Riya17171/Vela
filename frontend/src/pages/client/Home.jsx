@@ -8,10 +8,11 @@ import PhilosophyStatement from '../../components/home/PhilosophyStatement.jsx'
 import JournalSignup from '../../components/home/JournalSignup.jsx'
 import ProductGrid from '../../components/ProductGrid/ProductGrid.jsx'
 import ProductCard from '../../components/ProductCard/ProductCard.jsx'
+import { ErrorState } from '../../components/common/StatusViews.jsx'
 import { useProducts } from '../../hooks/useProducts.js'
 
 export default function Home() {
-  const { products, loading } = useProducts({ limit: 6, isFeatured: true })
+  const { products, loading, error, reload } = useProducts({ limit: 6, featured: 'true' })
 
   return (
     <div className="w-full flex flex-col pt-0 pb-0">
@@ -41,6 +42,8 @@ export default function Home() {
 
         {loading ? (
           <div className="w-full h-64 flex items-center justify-center font-sans text-xs text-warmgray uppercase tracking-luxury">Loading curations...</div>
+        ) : error ? (
+          <ErrorState error={error} onRetry={reload} className="h-64" />
         ) : (
           <>
             <ProductGrid>

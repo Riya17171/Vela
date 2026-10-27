@@ -1,77 +1,68 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext.jsx'
-import { useOrders } from '../../hooks/useOrders.js'
 
-const getStatusStyle = (status) => {
-  switch (status?.toLowerCase()) {
-    case 'pending': return 'bg-linen text-warmgray'
-    case 'confirmed': return 'bg-parchment text-charcoal border border-silk'
-    case 'shipped': return 'bg-charcoal text-cream'
-    case 'delivered': return 'bg-obsidian text-cream'
-    case 'cancelled': return 'border border-silk text-warmgray line-through'
-    default: return 'bg-linen text-warmgray'
-  }
-}
+import OrderStatusBadge from '../../components/common/OrderStatusBadge.jsx'
+import { EmptyState, ErrorState, LoadingState } from '../../components/common/StatusViews.jsx'
+import { useAsync } from '../../hooks/useAsync.js'
+import { fetchMyOrders } from '../../services/orders.js'
+import { formatDate, formatPrice } from '../../utils/format.js'
 
 export default function Orders() {
-  const { user } = useAuth()
-  const { orders, loading } = useOrders(user?.id)
+  const [page, setPage] = useState(1)
+  const { data, loading, error, reload } = useAsync(() => fetchMyOrders({ page, limit: 10 }), [page])
 
-  if (!user) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
-        <h2 className="font-display text-4xl lg:text-5xl font-light text-charcoal mb-4 tracking-tight">Login Required</h2>
-        <p className="font-sans text-sm text-charcoal font-light mb-8">Please authenticate to view your order history.</p>
-        <Link to="/login" className="bg-obsidian text-cream text-xs tracking-luxury uppercase px-8 py-3.5 rounded-none font-medium hover:bg-charcoal transition-colors focus:outline-none">
-          Authenticate
-        </Link>
-      </div>
-    )
+  if (loading && !data) return <LoadingState label="Loading orders..." className="min-h-[60vh]" />
+  if (error) return <ErrorState error={error} onRetry={reload} className="min-h-[60vh]" />
+
+  const { orders, meta } = data
+  if (orders.length === 0 && page === 1) {
+    return <EmptyState title="Order History" message="You haven't placed any orders yet." actionLabel="Start Shopping" actionTo="/products" />
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-8 py-16 md:py-24 min-h-screen">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-16 md:py-24 min-h-screen">
       <h1 className="font-display text-4xl lg:text-5xl font-light text-charcoal mb-16 pb-6 border-b border-silk tracking-tight">Order History</h1>
 
-      {loading ? (
-        <div className="min-h-[40vh] flex items-center justify-center font-sans text-xs tracking-luxury uppercase text-warmgray">Loading insights...</div>
-      ) : orders.length === 0 ? (
-        <div className="min-h-[40vh] flex flex-col items-center justify-center text-center">
-          <p className="font-sans text-sm text-charcoal font-light mb-8">You haven't placed any orders yet.</p>
-          <Link to="/products" className="bg-transparent border border-charcoal text-charcoal text-xs tracking-luxury uppercase px-8 py-3.5 rounded-none font-medium hover:bg-parchment transition-colors focus:outline-none">Start Shopping</Link>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-8">
-          {orders.map(o => (
-            <div className="border border-silk bg-bg rounded-none" key={o.id}>
-              <div className="flex flex-col md:flex-row gap-4 md:gap-8 py-4 px-6 bg-parchment/30 border-b border-silk justify-between md:items-center">
-                <div className="flex gap-8">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] tracking-luxury uppercase text-warmgray">Order Placed</span>
-                    <span className="font-sans text-sm text-charcoal font-medium">{new Date(o.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] tracking-luxury uppercase text-warmgray">Total</span>
-                    <span className="font-sans text-sm text-charcoal font-medium">${o.total.toFixed(2)}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] tracking-luxury uppercase text-warmgray">Status</span>
-                    <span className={`text-[9px] tracking-luxury uppercase px-3 py-1 rounded-none inline-block mt-0.5 ${getStatusStyle(o.status)}`}>
-                      {o.status}
-                    </span>
-                  </div>
+      <ul className="flex flex-col gap-8">
+        {orders.map((o) => (
+          <li className="border border-silk bg-bg rounded-none" key={o.id}>
+            <div className="flex flex-col md:flex-row gap-4 md:gap-8 py-4 px-6 bg-parchment/30 border-b border-silk justify-between md:items-center">
+              <dl className="flex flex-wrap gap-6 md:gap-8">
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[10px] tracking-luxury uppercase text-warmgray">Order Placed</dt>
+                  <dd className="font-sans text-sm text-charcoal font-medium">{formatDate(o.createdAt)}</dd>
                 </div>
-                <div>
-                  <Link to={`/orders/${o.id}`} className="text-[10px] tracking-luxury uppercase text-warmgray hover:text-charcoal underline underline-offset-4 focus:outline-none transition-colors">View Details</Link>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[10px] tracking-luxury uppercase text-warmgray">Total</dt>
+                  <dd className="font-sans text-sm text-charcoal font-medium">{formatPrice(o.total, o.currency)}</dd>
                 </div>
-              </div>
-              <div className="px-6 py-4">
-                <span className="text-[10px] tracking-luxury uppercase text-warmgray">Order ID:</span> <span className="font-sans text-xs text-warmgray tracking-wider ml-2">{o.id}</span>
-              </div>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[10px] tracking-luxury uppercase text-warmgray">Status</dt>
+                  <dd className="mt-0.5"><OrderStatusBadge status={o.status} /></dd>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[10px] tracking-luxury uppercase text-warmgray">Payment</dt>
+                  <dd className="mt-0.5"><OrderStatusBadge status={o.paymentStatus} /></dd>
+                </div>
+              </dl>
+              <Link to={`/orders/${o.id}`} className="text-[10px] tracking-luxury uppercase text-warmgray hover:text-charcoal underline underline-offset-4 focus:outline-none transition-colors">
+                {o.status === 'pending_payment' ? 'Complete Payment' : 'View Details'}
+              </Link>
             </div>
-          ))}
-        </div>
+            <div className="px-6 py-4 flex flex-col sm:flex-row sm:justify-between gap-2">
+              <span className="text-sm text-charcoal font-light">{o.items.map((item) => `${item.title}${item.quantity > 1 ? ` × ${item.quantity}` : ''}`).join(', ')}</span>
+              <span className="font-sans text-xs text-warmgray tracking-wider">{o.orderNumber}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {meta.totalPages > 1 && (
+        <nav className="flex justify-center items-center gap-8 mt-16" aria-label="Pagination">
+          <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)} className="text-[10px] tracking-luxury uppercase text-charcoal disabled:opacity-30">← Newer</button>
+          <span className="text-[10px] tracking-luxury uppercase text-warmgray">Page {meta.page} of {meta.totalPages}</span>
+          <button type="button" disabled={!meta.hasNextPage} onClick={() => setPage(page + 1)} className="text-[10px] tracking-luxury uppercase text-charcoal disabled:opacity-30">Older →</button>
+        </nav>
       )}
     </div>
   )

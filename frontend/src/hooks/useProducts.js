@@ -1,43 +1,54 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { fetchProducts } from '../services/products.js'
 
-export function useProducts({ categoryId, minPrice, maxPrice, sort, search, isFeatured, limit = 12 } = {}) {
+/** Paginated catalogue loader with "load more"; refetches from page 1 when filters change. */
+export function useProducts(params = {}, { enabled = true } = {}) {
   const [products, setProducts] = useState([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [meta, setMeta] = useState({ page: 0, total: 0, totalPages: 0, hasNextPage: false })
+  const [loading, setLoading] = useState(enabled)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [error, setError] = useState(null)
+  const key = JSON.stringify(params)
+  const latest = useRef(key)
 
   const load = useCallback(async () => {
+    if (!enabled) return
+    latest.current = key
     setLoading(true)
+    setError(null)
     try {
-      const res = await fetchProducts({ categoryId, minPrice, maxPrice, sort, search, isFeatured, limit, offset: 0 })
+      const res = await fetchProducts({ ...JSON.parse(key), page: 1 })
+      if (latest.current !== key) return
       setProducts(res.products)
-      setTotal(res.total)
+      setMeta(res.meta)
+    } catch (err) {
+      if (latest.current === key) setError(err)
     } finally {
-      setLoading(false)
+      if (latest.current === key) setLoading(false)
     }
-  }, [categoryId, maxPrice, minPrice, search, sort, isFeatured, limit])
+  }, [key, enabled])
 
   useEffect(() => {
     load()
   }, [load])
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || products.length >= total) return
+    if (loadingMore || !meta.hasNextPage) return
     setLoadingMore(true)
     try {
-      const res = await fetchProducts({ categoryId, minPrice, maxPrice, sort, search, isFeatured, limit, offset: products.length })
-      setProducts(prev => {
-        const existingIds = new Set(prev.map(p => p.id));
-        const newProducts = res.products.filter(p => !existingIds.has(p.id));
-        return [...prev, ...newProducts];
+      const res = await fetchProducts({ ...JSON.parse(key), page: meta.page + 1 })
+      setProducts((prev) => {
+        const seen = new Set(prev.map((product) => product.id))
+        return [...prev, ...res.products.filter((product) => !seen.has(product.id))]
       })
+      setMeta(res.meta)
+    } catch (err) {
+      setError(err)
     } finally {
       setLoadingMore(false)
     }
-  }, [loadingMore, products.length, total, categoryId, maxPrice, minPrice, search, sort, isFeatured, limit])
+  }, [key, loadingMore, meta])
 
-  return { products, total, loading, loadingMore, reload: load, loadMore }
+  return { products, total: meta.total, meta, loading, loadingMore, error, reload: load, loadMore }
 }
-
