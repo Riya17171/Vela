@@ -38,6 +38,14 @@ function paymentsDisabledError() {
 function providerError(error, action) {
   const description = error?.error?.description ?? error?.message ?? 'Unknown error'
   logger.error({ action, statusCode: error?.statusCode, code: error?.error?.code, description }, 'Razorpay request failed')
+  if (action === 'payments.refund' && error?.statusCode === 400) {
+    // Razorpay answers "invalid request sent" when the refund exceeds the account's refundable
+    // balance (common on fresh test accounts). Nothing was refunded; the order stays refund_pending.
+    return ApiError.badGateway(
+      `Razorpay rejected the refund (${description}). In test mode this usually means the account's refundable balance is lower than the refund amount; check the Razorpay dashboard and retry later.`,
+      { code: 'REFUND_REJECTED' },
+    )
+  }
   return ApiError.badGateway('The payment provider could not complete the request. Please try again.', {
     code: 'PAYMENT_PROVIDER_ERROR',
   })

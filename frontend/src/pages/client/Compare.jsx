@@ -1,6 +1,7 @@
 import { FiShoppingCart, FiTrash2 } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import ProductImage from '../../components/common/ProductImage.jsx'
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/common/StatusViews.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
@@ -72,7 +73,7 @@ export default function Compare() {
                     ) : (
                       <>
                         <div className="w-full aspect-[3/4] bg-ivory dark:bg-white border border-silk mb-2 flex shrink-0 items-center justify-center p-4">
-                          <img src={product.image} alt={product.title} className="w-full h-full object-cover object-top mix-blend-multiply dark:mix-blend-normal" />
+                          <ProductImage src={product.image} alt={product.title} className="w-full h-full object-cover object-top mix-blend-multiply dark:mix-blend-normal" />
                         </div>
                         <Link to={`/products/${product.slug}`} className="font-display text-xl text-charcoal font-light m-0 line-clamp-1 hover:opacity-70 transition-opacity">{product.title}</Link>
                         <div className="font-sans text-sm text-charcoal font-medium">{formatPrice(product.price, product.currency)}</div>

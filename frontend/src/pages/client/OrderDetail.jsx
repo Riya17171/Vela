@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import ProductImage from '../../components/common/ProductImage.jsx'
 
 import OrderStatusBadge from '../../components/common/OrderStatusBadge.jsx'
 import { ErrorState, FormAlert, LoadingState } from '../../components/common/StatusViews.jsx'
@@ -132,7 +133,7 @@ export default function OrderDetail() {
             {order.items.map((item) => (
               <li key={item.id} className="flex gap-6 py-6 border-silk border-t first:border-0 first:pt-0 last:pb-0">
                 <Link to={`/products/${item.slug ?? item.productId}`} className="w-20 md:w-24 aspect-[3/4] bg-ivory dark:bg-white shrink-0 border border-silk hover:border-charcoal transition-colors">
-                  {item.image && <img src={item.image} alt={item.title} className="w-full h-full object-cover object-top mix-blend-multiply dark:mix-blend-normal" />}
+                  <ProductImage src={item.image} alt={item.title} className="w-full h-full object-cover object-top mix-blend-multiply dark:mix-blend-normal" />
                 </Link>
                 <div className="flex-1 flex flex-col justify-center">
                   <Link to={`/products/${item.slug ?? item.productId}`} className="font-display text-lg lg:text-xl font-light text-charcoal hover:opacity-70 transition-opacity m-0">{item.title}</Link>

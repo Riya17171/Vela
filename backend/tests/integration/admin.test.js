@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Order } from '../../src/models/Order.js'
 import { Product } from '../../src/models/Product.js'
+import { razorpayGateway } from '../../src/services/payment.service.js'
 import { addToCart, api, bearer, createCategory, createProduct, createUser, placeOrder, resetDatabase } from '../helpers/factories.js'
 import { stubRazorpay } from '../helpers/razorpayStub.js'
 
@@ -143,6 +144,21 @@ describe('order management', () => {
     expect(refund.status).toBe(200)
     expect(refund.body.data.order.paymentStatus).toBe('refunded')
     expect((await api().post(`/api/v1/admin/orders/${order.id}/refund`).set(bearer(admin)).send({})).status).toBe(409)
+  })
+
+  it('keeps the order refund_pending when Razorpay rejects the refund', async () => {
+    const { order } = await paidOrder()
+    await api().patch(`/api/v1/admin/orders/${order.id}/status`).set(bearer(admin)).send({ status: 'cancelled' })
+    razorpayGateway.refundPayment.mockRejectedValueOnce({ statusCode: 400, error: { code: 'BAD_REQUEST_ERROR', description: 'invalid request sent' } })
+
+    const rejected = await api().post(`/api/v1/admin/orders/${order.id}/refund`).set(bearer(admin)).send({})
+    expect(rejected.status).toBe(502)
+    expect(rejected.body.code).toBe('REFUND_REJECTED')
+    expect((await Order.findById(order.id)).paymentStatus).toBe('refund_pending')
+
+    // The claim is released, so the admin can retry once the balance allows it.
+    const retry = await api().post(`/api/v1/admin/orders/${order.id}/refund`).set(bearer(admin)).send({})
+    expect(retry.body.data.order.paymentStatus).toBe('refunded')
   })
 
   it('lists and filters orders with customer details', async () => {

@@ -262,7 +262,17 @@ Window closed ─► POST /payments/:id/reconcile asks Razorpay what happened �
 2. Click **Pay** → Razorpay Checkout opens in test mode. Pay with UPI ID `success@razorpay` (or `failure@razorpay` to see a failure), or a test card from Razorpay's docs: [test UPI details](https://razorpay.com/docs/payments/payments/test-upi-details/), [test cards](https://razorpay.com/docs/payments/payments/test-card-details/).
 3. On success you land on the order page showing **Confirmed / Paid**, and the Razorpay dashboard (Test Mode → Transactions) shows the payment. Try a failure method or close the window to see the order stay *Awaiting payment* with a "Pay" button.
 
-**What was verified here:** the integration, signature and webhook logic are covered by automated tests with the Razorpay API stubbed, and the browser flow was exercised up to the point where keys are required. A real test-mode payment against Razorpay has **not** been executed in this environment because no Razorpay credentials were available — see [Known limitations](#known-limitations).
+**What was verified (27 Oct 2026, real Razorpay test mode, MongoDB Atlas):**
+
+| Scenario | Result |
+|---|---|
+| Successful Netbanking payment through Razorpay Checkout in Chrome | Signature + provider verification passed; order *Confirmed / Paid*; bag emptied; stock decremented once |
+| Bank declined (test bank "Failure") | Order stays *Awaiting payment / Failed* with Razorpay's decline reason; retry offered; no success shown |
+| Checkout window closed without paying | Server reconciled with Razorpay; "Payment was not completed"; order unchanged |
+| Admin cancels a paid order | *Cancelled / Refund pending*; stock returned |
+| Admin issues refund | Razorpay refund created; Razorpay reports the payment fully refunded; a second refund is refused (`REFUND_EXISTS`) |
+
+Signature, webhook, duplicate-delivery and late-payment logic are additionally covered by automated tests with the provider stubbed. Webhooks were not exercised live because Razorpay cannot reach `localhost`.
 
 ---
 
@@ -308,12 +318,13 @@ Highlights: bcrypt (12 rounds) password hashing; hashed refresh and reset tokens
 
 ## Known limitations
 
-- **No live Razorpay transaction was run during development** (no credentials available). The flow is implemented with the official SDK and verified with stubbed provider responses; follow [Test a payment manually](#test-a-payment-manually) once keys are configured.
+- **Webhooks need a public URL.** Locally, refunds stay *Refund pending* in Vela after Razorpay processes them, because the `refund.processed` webhook cannot reach `localhost`; once deployed with the webhook configured they move to *Refunded* automatically.
+- **Razorpay test accounts have a small refundable balance.** Razorpay rejects refunds larger than the remaining balance with the generic message "invalid request sent" (observed: refunds of a few thousand rupees succeed, a ₹35,100 refund was rejected). Vela reports this as `REFUND_REJECTED`, keeps the order *Refund pending* and lets the admin retry; nothing is marked refunded.
 - **Not deployed.** Deployment files and instructions are provided; nothing has been verified on a public host.
 - **Email and image uploads are optional integrations.** Without SMTP, reset links are only logged in development; without Cloudinary, admins use image URLs.
 - **Guest checkout and a guest bag are not supported** — the bag requires an account, as in the original app. Comparison works for guests (browser-local).
 - **Stock is tracked per product, not per size/colour.** Variants share one stock counter.
 - **Single currency (INR).** Razorpay test accounts settle in INR by default; very large carts may exceed per-transaction limits configured on a Razorpay account.
 - **Search** uses escaped case-insensitive matching on title, description and SKU — adequate for a catalogue of this size, not a full-text search engine.
-- **Seed images** are the original Unsplash URLs; a few do not depict the product named (e.g. the cashmere turtleneck).
+- **Seed images** are the original Unsplash URLs. Four product photos and the Fragrances category image no longer exist on Unsplash; the storefront shows a named placeholder tile instead of a broken image. Pieces needing new photos (replace via *Admin → Products → Edit*): Sculptural Brass Drop Earrings (VL-ACCS-06), Silence No. 1 (VL-FRAG-01), Parchment (VL-FRAG-02). Several others show unrelated scenes (e.g. VL-WRTW-01 turtleneck shows a T-shirt, VL-ACCS-05 belt shows a backpack, VL-FRAG-03 shows a person) and would also benefit from new photography.
 - The original Supabase schema and seed are preserved in `docs/legacy-supabase/` for reference only; the app no longer uses Supabase.

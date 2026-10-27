@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { FiBarChart2, FiChevronLeft, FiChevronRight, FiHeart, FiMinus, FiPlus } from 'react-icons/fi'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import ProductImage from '../../components/common/ProductImage.jsx'
 
 import ProductCard from '../../components/ProductCard/ProductCard.jsx'
 import ReviewSection from '../../components/ReviewSection/ReviewSection.jsx'
@@ -94,7 +95,7 @@ function ProductView({ product }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-8 w-full min-h-[calc(100vh-4rem)] flex flex-col md:flex-row gap-12 lg:gap-24 py-16">
         <div className="md:w-1/2 flex flex-col gap-4">
           <div className="w-full aspect-[3/4] bg-ivory dark:bg-white overflow-hidden border border-silk">
-            <img src={product.images[activeImage]?.url ?? product.image} alt={product.images[activeImage]?.alt ?? product.title} className="w-full h-full object-cover object-top mix-blend-multiply dark:mix-blend-normal" />
+            <ProductImage src={product.images[activeImage]?.url ?? product.image} alt={product.images[activeImage]?.alt ?? product.title} fallbackClassName="text-2xl" className="w-full h-full object-cover object-top mix-blend-multiply dark:mix-blend-normal" />
           </div>
           {product.images.length > 1 && (
             <div className="flex gap-4 overflow-x-auto hide-scrollbar">
