@@ -15,8 +15,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Requests arrive via the Vercel /api rewrite and then Render's load balancer: two proxy hops.
+      # This makes req.ip the visitor's address, so rate limits are per visitor, not per proxy.
       - key: TRUST_PROXY
-        value: "1"
+        value: "2"
       - key: COOKIE_SECURE
         value: "true"
       - key: COOKIE_SAMESITE

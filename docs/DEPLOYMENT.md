@@ -1,6 +1,6 @@
 # Deployment
 
-> Status: **not deployed.** These instructions were written for this codebase but have not been executed against real hosting accounts. The existing site at https://vela-black.vercel.app/ still serves the earlier Supabase version.
+> Status: API deployed on Render at https://vela-api-5pkm.onrender.com (free plan, Singapore) with MongoDB Atlas. Frontend: see the README for the current state.
 
 Recommended topology:
 
@@ -33,7 +33,7 @@ Routing `/api/*` through the Vercel domain keeps the refresh cookie **same-site*
 | `APP_URL` | `https://<your-app>.vercel.app` |
 | `COOKIE_SECURE` | `true` |
 | `COOKIE_SAMESITE` | `lax` (same-site via rewrite) |
-| `TRUST_PROXY` | `1` |
+| `TRUST_PROXY` | `2` (Vercel rewrite + Render load balancer; use `1` if the browser calls Render directly) |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | **test** keys |
 | `RAZORPAY_WEBHOOK_SECRET` | secret chosen in step 4 |
 | `SMTP_*`, `CLOUDINARY_*` | optional |
@@ -68,7 +68,7 @@ MONGODB_URI="<atlas uri>" NODE_ENV=production ALLOW_ADMIN_PROVISIONING=true npm 
 
 3. Environment: `VITE_API_URL=/api/v1` (the default). No secrets belong in Vercel's frontend env.
 
-The committed `vercel.json` contains only the SPA fallback because the API URL is deployment-specific.
+The committed `frontend/vercel.json` points at this project's API (`https://vela-api-5pkm.onrender.com`); change the host if you deploy your own copy.
 
 ## 4. Post-deploy checks
 
