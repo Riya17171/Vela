@@ -1,0 +1,10 @@
+import { MongoMemoryReplSet } from 'mongodb-memory-server'
+
+// A real single-node replica set, so transaction code paths are exercised.
+export default async function setup(project) {
+  const replSet = await MongoMemoryReplSet.create({ replSet: { count: 1, storageEngine: 'wiredTiger' } })
+  project.provide('mongoUri', replSet.getUri())
+  return async () => {
+    await replSet.stop()
+  }
+}
