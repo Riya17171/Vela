@@ -4,6 +4,10 @@ services:
   - type: web
     name: vela-api
     runtime: node
+    # Free instance (sleeps after ~15 min idle). Remove or change to upgrade.
+    plan: free
+    # Closest Render region to India.
+    region: singapore
     rootDir: backend
     buildCommand: npm ci
     startCommand: npm start
